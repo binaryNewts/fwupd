@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2016 Richard Hughes <richard@hughsie.com>
+ * Copyright (C) 2021 Twain Byrnes <binaryNewts@google.com>
+ *                    George Popoola <gpopoola@google.com>
+ *
  *
  * SPDX-License-Identifier: LGPL-2.1+
  */
@@ -8,24 +10,23 @@
 
 #include <fwupdplugin.h>
 
-
 void
 fu_plugin_init (FuPlugin *plugin)
 {
-    fu_plugin_set_build_hash (plugin, FU_BUILD_HASH);
+  fu_plugin_set_build_hash (plugin, FU_BUILD_HASH);
 }
 
 gboolean
 fu_plugin_startup (FuPlugin *plugin, GError **error)
 {
-       return TRUE;
+  return TRUE;
 }
 
 gboolean
 fu_plugin_update_prepare (FuPlugin *plugin,
-			  FwupdInstallFlags flags,
-			  FuDevice *device,
-			  GError **error)
+                          FwupdInstallFlags flags,
+                          FuDevice *device,
+                          GError **error)
 {
-	return TRUE;
+  return TRUE;
 }

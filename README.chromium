@@ -1,0 +1,14 @@
+DESCRIPTION="A simple daemon to allow session software to update firmware"
+HOMEPAGE="https://github.com/fwupd/fwupd"
+UPSTREAM_REPO="https://github.com/fwupd/fwupd.git"
+LOCAL_GIT_REPO="https://chromium.googlesource.com/chromiumos/third_party/fwupd"
+UPSTREAM_BUGSDB="https://github.com/fwupd/fwupd/issues"
+LOCAL_BUGSDB="http://crbug.com"
+LICENSE="LGPLv2.1"
+LICENSE_FILE="COPYING"
+
+Description:
+
+This project aims to make updating firmware on Linux automatic, safe and reliable.
+
+Additional information is available at the website: https://fwupd.org

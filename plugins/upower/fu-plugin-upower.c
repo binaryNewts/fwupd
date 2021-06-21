@@ -6,7 +6,7 @@
 
 #include "config.h"
 
-#include "fu-plugin-vfuncs.h"
+#include <fwupdplugin.h>
 
 #define MINIMUM_BATTERY_PERCENTAGE_FALLBACK	10
 
@@ -40,14 +40,14 @@ fu_plugin_upower_rescan (FuPlugin *plugin)
 
 	/* check that we "have" a battery */
 	type_val = g_dbus_proxy_get_cached_property (data->proxy, "Type");
-	if (type_val == NULL) {
+	if (type_val == NULL || g_variant_get_uint32 (type_val) == 0) {
 		g_warning ("failed to query power type");
 		fu_context_set_battery_state (ctx, FU_BATTERY_STATE_UNKNOWN);
 		fu_context_set_battery_level (ctx, FU_BATTERY_VALUE_INVALID);
 		return;
 	}
 	state_val = g_dbus_proxy_get_cached_property (data->proxy, "State");
-	if (state_val == NULL) {
+	if (state_val == NULL || g_variant_get_uint32 (state_val) == 0) {
 		g_warning ("failed to query power state");
 		fu_context_set_battery_state (ctx, FU_BATTERY_STATE_UNKNOWN);
 		fu_context_set_battery_level (ctx, FU_BATTERY_VALUE_INVALID);
@@ -79,6 +79,7 @@ fu_plugin_startup (FuPlugin *plugin, GError **error)
 {
 	FuContext *ctx = fu_plugin_get_context (plugin);
 	FuPluginData *data = fu_plugin_get_data (plugin);
+	const gchar *vendor;
 	guint64 minimum_battery;
 	g_autofree gchar *name_owner = NULL;
 	g_autofree gchar *battery_str = NULL;
@@ -108,11 +109,8 @@ fu_plugin_startup (FuPlugin *plugin, GError **error)
 	g_signal_connect (data->proxy, "g-properties-changed",
 			  G_CALLBACK (fu_plugin_upower_proxy_changed_cb), plugin);
 
-	battery_str = fu_plugin_get_config_value (plugin, "BatteryThreshold");
-	if (battery_str == NULL) {
-		const gchar *vendor = fu_context_get_hwid_replace_value (ctx,
-									 FU_HWIDS_KEY_MANUFACTURER,
-									 NULL);
+	vendor = fu_context_get_hwid_replace_value (ctx, FU_HWIDS_KEY_MANUFACTURER, NULL);
+	if (vendor != NULL) {
 		battery_str = g_strdup (fu_context_lookup_quirk_by_id (ctx,
 								       vendor,
 								       FU_QUIRKS_BATTERY_THRESHOLD));

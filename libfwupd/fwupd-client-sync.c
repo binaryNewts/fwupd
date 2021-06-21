@@ -77,9 +77,9 @@ fwupd_client_connect_cb (GObject *source, GAsyncResult *res, gpointer user_data)
 
 /**
  * fwupd_client_connect:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Sets up the client ready for use. Most other methods call this
  * for you, and do you only need to call this if you are just watching
@@ -119,9 +119,9 @@ fwupd_client_get_devices_cb (GObject *source, GAsyncResult *res, gpointer user_d
 
 /**
  * fwupd_client_get_devices:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the devices registered with the daemon.
  *
@@ -164,9 +164,9 @@ fwupd_client_get_plugins_cb (GObject *source, GAsyncResult *res, gpointer user_d
 
 /**
  * fwupd_client_get_plugins:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the plugins being used the daemon.
  *
@@ -209,9 +209,9 @@ fwupd_client_get_history_cb (GObject *source, GAsyncResult *res, gpointer user_d
 
 /**
  * fwupd_client_get_history:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the history.
  *
@@ -254,10 +254,10 @@ fwupd_client_get_releases_cb (GObject *source, GAsyncResult *res, gpointer user_
 
 /**
  * fwupd_client_get_releases:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the releases for a specific device
  *
@@ -302,10 +302,10 @@ fwupd_client_get_downgrades_cb (GObject *source, GAsyncResult *res, gpointer use
 
 /**
  * fwupd_client_get_downgrades:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the downgrades for a specific device.
  *
@@ -350,10 +350,10 @@ fwupd_client_get_upgrades_cb (GObject *source, GAsyncResult *res, gpointer user_
 
 /**
  * fwupd_client_get_upgrades:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the upgrades for a specific device.
  *
@@ -398,10 +398,10 @@ fwupd_client_get_details_bytes_cb (GObject *source, GAsyncResult *res, gpointer 
 
 /**
  * fwupd_client_get_details_bytes:
- * @self: A #FwupdClient
- * @bytes: the firmware blob, e.g. the contents of `firmware.cab`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @bytes: the firmware archive
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets details about a specific firmware file.
  *
@@ -452,10 +452,10 @@ fwupd_client_get_details_cb (GObject *source, GAsyncResult *res, gpointer user_d
 
 /**
  * fwupd_client_get_details:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @filename: the firmware filename, e.g. `firmware.cab`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets details about a specific firmware file.
  *
@@ -515,10 +515,10 @@ fwupd_client_verify_cb (GObject *source, GAsyncResult *res, gpointer user_data)
 
 /**
  * fwupd_client_verify:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Verify a specific device.
  *
@@ -566,10 +566,10 @@ fwupd_client_verify_update_cb (GObject *source, GAsyncResult *res, gpointer user
 
 /**
  * fwupd_client_verify_update:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Update the verification record for a specific device.
  *
@@ -617,10 +617,10 @@ fwupd_client_unlock_cb (GObject *source, GAsyncResult *res, gpointer user_data)
 
 /**
  * fwupd_client_unlock:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Unlocks a specific device so firmware can be read or wrote.
  *
@@ -667,14 +667,14 @@ fwupd_client_modify_config_cb (GObject *source, GAsyncResult *res, gpointer user
 
 /**
  * fwupd_client_modify_config
- * @self: A #FwupdClient
- * @key: key, e.g. `DisabledPlugins`
- * @value: value, e.g. `*`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @key: config key, e.g. `DisabledPlugins`
+ * @value: config value, e.g. `*`
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Modifies a daemon config option.
- * The daemon will only respond to this request with proper permissions
+ * The daemon will only respond to this request with proper permissions.
  *
  * Returns: %TRUE for success
  *
@@ -723,10 +723,10 @@ fwupd_client_activate_cb (GObject *source, GAsyncResult *res, gpointer user_data
 
 /**
  * fwupd_client_activate:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @device_id: a device
- * @error: the #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Activates up a device, which normally means the device switches to a new
  * firmware version. This should only be called when data loss cannot occur.
@@ -776,10 +776,10 @@ fwupd_client_clear_results_cb (GObject *source, GAsyncResult *res, gpointer user
 
 /**
  * fwupd_client_clear_results:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Clears the results for a specific device.
  *
@@ -828,14 +828,14 @@ fwupd_client_get_results_cb (GObject *source, GAsyncResult *res, gpointer user_d
 
 /**
  * fwupd_client_get_results:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets the results of a previous firmware update for a specific device.
  *
- * Returns: (transfer full): a #FwupdDevice, or %NULL for failure
+ * Returns: (transfer full): a device, or %NULL for failure
  *
  * Since: 0.7.0
  **/
@@ -876,9 +876,9 @@ fwupd_client_get_host_security_attrs_cb (GObject *source, GAsyncResult *res, gpo
 
 /**
  * fwupd_client_get_host_security_attrs:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the host security attributes from the daemon.
  *
@@ -924,14 +924,14 @@ fwupd_client_get_device_by_id_cb (GObject *source, GAsyncResult *res, gpointer u
 
 /**
  * fwupd_client_get_device_by_id:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID, e.g. `usb:00:01:03:03`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
- * Gets a device by it's device ID.
+ * Gets a device by its device ID.
  *
- * Returns: (transfer full): a #FwupdDevice or %NULL
+ * Returns: (transfer full): a device or %NULL
  *
  * Since: 0.9.3
  **/
@@ -975,10 +975,10 @@ fwupd_client_get_devices_by_guid_cb (GObject *source, GAsyncResult *res, gpointe
 
 /**
  * fwupd_client_get_devices_by_guid:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @guid: the GUID, e.g. `e22c4520-43dc-5bb3-8245-5787fead9b63`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets any devices that provide a specific GUID. An error is returned if no
  * devices contains this GUID.
@@ -1027,12 +1027,12 @@ fwupd_client_install_fd_cb (GObject *source, GAsyncResult *res, gpointer user_da
 
 /**
  * fwupd_client_install:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
  * @filename: the filename to install
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Install a file onto a specific device.
  *
@@ -1098,12 +1098,12 @@ fwupd_client_install_bytes_cb (GObject *source, GAsyncResult *res, gpointer user
 
 /**
  * fwupd_client_install_bytes:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @bytes: #GBytes
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @bytes: cabinet archive
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Install firmware onto a specific device.
  *
@@ -1154,13 +1154,13 @@ fwupd_client_install_release_cb (GObject *source, GAsyncResult *res, gpointer us
 
 /**
  * fwupd_client_install_release2:
- * @self: A #FwupdClient
- * @device: A #FwupdDevice
- * @release: A #FwupdRelease
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @download_flags: the #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @device: a device
+ * @release: a release
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @download_flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Installs a new release on a device, downloading the firmware if required.
  *
@@ -1206,12 +1206,12 @@ fwupd_client_install_release2 (FwupdClient *self,
 
 /**
  * fwupd_client_install_release:
- * @self: A #FwupdClient
- * @device: A #FwupdDevice
- * @release: A #FwupdRelease
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @device: a device
+ * @release: a release
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Installs a new release on a device, downloading the firmware if required.
  *
@@ -1245,12 +1245,12 @@ fwupd_client_update_metadata_cb (GObject *source, GAsyncResult *res, gpointer us
 
 /**
  * fwupd_client_update_metadata:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: the remote ID, e.g. `lvfs-testing`
  * @metadata_fn: the XML metadata filename
  * @signature_fn: the GPG signature file
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Updates the metadata. This allows a session process to download the metadata
  * and metadata signing file to be passed into the daemon to be checked and
@@ -1324,12 +1324,12 @@ fwupd_client_update_metadata_bytes_cb (GObject *source, GAsyncResult *res, gpoin
 
 /**
  * fwupd_client_update_metadata_bytes:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: remote ID, e.g. `lvfs-testing`
  * @metadata: XML metadata data
  * @signature: signature data
- * @cancellable: #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Updates the metadata. This allows a session process to download the metadata
  * and metadata signing file to be passed into the daemon to be checked and
@@ -1390,10 +1390,10 @@ fwupd_client_refresh_remote_cb (GObject *source,
 
 /**
  * fwupd_client_refresh_remote:
- * @self: A #FwupdClient
- * @remote: A #FwupdRemote
- * @cancellable: A #GCancellable, or %NULL
- * @error: A #GError, or %NULL
+ * @self: a #FwupdClient
+ * @remote: a #FwupdRemote
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Refreshes a remote by downloading new metadata.
  *
@@ -1437,12 +1437,12 @@ fwupd_client_modify_remote_cb (GObject *source, GAsyncResult *res, gpointer user
 
 /**
  * fwupd_client_modify_remote:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: the remote ID, e.g. `lvfs-testing`
  * @key: the key, e.g. `Enabled`
  * @value: the key, e.g. `true`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Modifies a system remote in a specific way.
  *
@@ -1497,9 +1497,9 @@ fwupd_client_get_report_metadata_cb (GObject *source, GAsyncResult *res, gpointe
 
 /**
  * fwupd_client_get_report_metadata:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets all the report metadata from the daemon.
  *
@@ -1545,12 +1545,12 @@ fwupd_client_modify_device_cb (GObject *source, GAsyncResult *res, gpointer user
 
 /**
  * fwupd_client_modify_device:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
  * @key: the key, e.g. `Flags`
  * @value: the key, e.g. `reported`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Modifies a device in a specific way. Not all properties on the #FwupdDevice
  * are settable by the client, and some may have other restrictions on @value.
@@ -1606,9 +1606,9 @@ fwupd_client_get_remotes_cb (GObject *source, GAsyncResult *res, gpointer user_d
 
 /**
  * fwupd_client_get_remotes:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets the list of remotes that have been configured for the system.
  *
@@ -1654,10 +1654,10 @@ fwupd_client_get_remote_by_id_noref (GPtrArray *remotes, const gchar *remote_id)
 
 /**
  * fwupd_client_get_remote_by_id:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: the remote ID, e.g. `lvfs-testing`
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets a specific remote that has been configured for the system.
  *
@@ -1707,9 +1707,9 @@ fwupd_client_get_approved_firmware_cb (GObject *source, GAsyncResult *res, gpoin
 
 /**
  * fwupd_client_get_approved_firmware:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets the list of approved firmware.
  *
@@ -1761,10 +1761,10 @@ fwupd_client_set_approved_firmware_cb (GObject *source, GAsyncResult *res, gpoin
 
 /**
  * fwupd_client_set_approved_firmware:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @checksums: Array of checksums
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Sets the list of approved firmware.
  *
@@ -1812,9 +1812,9 @@ fwupd_client_get_blocked_firmware_cb (GObject *source, GAsyncResult *res, gpoint
 
 /**
  * fwupd_client_get_blocked_firmware:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Gets the list of blocked firmware.
  *
@@ -1866,10 +1866,10 @@ fwupd_client_set_blocked_firmware_cb (GObject *source, GAsyncResult *res, gpoint
 
 /**
  * fwupd_client_set_blocked_firmware:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @checksums: Array of checksums
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Sets the list of approved firmware.
  *
@@ -1921,10 +1921,10 @@ fwupd_client_set_feature_flags_cb (GObject *source, GAsyncResult *res, gpointer 
 
 /**
  * fwupd_client_set_feature_flags:
- * @self: A #FwupdClient
- * @feature_flags: #FwupdFeatureFlags, e.g. %FWUPD_FEATURE_FLAG_UPDATE_TEXT
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @feature_flags: feature flags, e.g. %FWUPD_FEATURE_FLAG_UPDATE_TEXT
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Sets the features the client supports. This allows firmware to depend on
  * specific front-end features, for instance showing the user an image on
@@ -1975,11 +1975,11 @@ fwupd_client_self_sign_cb (GObject *source, GAsyncResult *res, gpointer user_dat
 
 /**
  * fwupd_client_self_sign:
- * @self: A #FwupdClient
- * @value: A string to sign, typically a JSON blob
- * @flags: #FwupdSelfSignFlags, e.g. %FWUPD_SELF_SIGN_FLAG_ADD_TIMESTAMP
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @value: a string to sign, typically a JSON blob
+ * @flags: signing flags, e.g. %FWUPD_SELF_SIGN_FLAG_ADD_TIMESTAMP
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
  * Signs the data using the client self-signed certificate.
  *
@@ -2028,13 +2028,13 @@ fwupd_client_download_bytes_cb (GObject *source, GAsyncResult *res, gpointer use
 
 /**
  * fwupd_client_download_bytes:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @url: the remote URL
- * @flags: #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
- * Downloads data from a remote server. The fwupd_client_set_user_agent() function
+ * Downloads data from a remote server. The [method@Client.set_user_agent] function
  * should be called before this method is used.
  *
  * Returns: (transfer full): downloaded data, or %NULL for error
@@ -2074,17 +2074,17 @@ fwupd_client_download_bytes (FwupdClient *self,
 
 /**
  * fwupd_client_download_file:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @url: the remote URL
- * @file: a #GFile
- * @flags: #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @file: a file
+ * @flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
- * Downloads data from a remote server. The fwupd_client_set_user_agent() function
+ * Downloads data from a remote server. The [method@Client.set_user_agent] function
  * should be called before this method is used.
  *
- * Returns: %TRUE if the file was written, or %NULL for error
+ * Returns: %TRUE if the file was written
  *
  * Since: 1.5.2
  **/
@@ -2133,15 +2133,15 @@ fwupd_client_upload_bytes_cb (GObject *source, GAsyncResult *res, gpointer user_
 
 /**
  * fwupd_client_upload_bytes:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @url: the remote URL
  * @payload: payload string
  * @signature: (nullable): signature string
- * @flags: #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
- * @cancellable: the #GCancellable, or %NULL
- * @error: the #GError, or %NULL
+ * @flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
+ * @cancellable: (nullable): optional #GCancellable
+ * @error: (nullable): optional return location for an error
  *
- * Uploads data to a remote server. The fwupd_client_set_user_agent() function
+ * Uploads data to a remote server. The [method@Client.set_user_agent] function
  * should be called before this method is used.
  *
  * Returns: (transfer full): response data, or %NULL for error

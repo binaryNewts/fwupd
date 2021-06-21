@@ -6,14 +6,13 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <linux/hidraw.h>
 #include <linux/input.h>
 
 #include "fu-elantp-common.h"
 #include "fu-elantp-firmware.h"
 #include "fu-elantp-hid-device.h"
-
-#include "fu-chunk.h"
 
 struct _FuElantpHidDevice {
 	FuUdevDevice		 parent_instance;
@@ -161,6 +160,10 @@ fu_elantp_hid_device_setup (FuDevice *device, GError **error)
 	g_autofree gchar *instance_id_ic_type = NULL;
 	g_autofree gchar *version_bl = NULL;
 	g_autofree gchar *version = NULL;
+
+	/* FuUsbDevice->setup */
+	if (!FU_DEVICE_CLASS (fu_elantp_hid_device_parent_class)->setup (device, error))
+		return FALSE;
 
 	/* get pattern */
 	if (!fu_elantp_hid_device_read_cmd (self,

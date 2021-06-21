@@ -5,8 +5,7 @@
  */
 
 /**
- * SECTION:fu-dfu-device
- * @short_description: Object representing a DFU-capable device
+ * FuDfuDevice:
  *
  * This object allows two things:
  *
@@ -17,7 +16,7 @@
  *    file. The file format is chosen automatically, with DfuSe being
  *    chosen if the device contains more than one target.
  *
- * See also: #FuDfuTarget, #FuDfuseFirmware
+ * See also: [class@FuDfuTarget], [class@FuDfuseFirmware]
  */
 
 /**
@@ -70,20 +69,14 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
 
 #include "fu-dfu-common.h"
 #include "fu-dfu-device.h"
 #include "fu-dfu-target-avr.h"
-#include "fu-dfu-target-private.h"
+#include "fu-dfu-target-private.h" /* waive-pre-commit */
 #include "fu-dfu-target-stm.h"
-
-#include "fu-device-locker.h"
-#include "fu-dfu-firmware-private.h"
-#include "fu-dfuse-firmware.h"
-#include "fu-firmware-common.h"
-
-#include "fwupd-error.h"
 
 static void fu_dfu_device_finalize			 (GObject *object);
 
@@ -144,11 +137,11 @@ fu_dfu_device_to_string (FuDevice *device, guint idt, GString *str)
 
 /**
  * fu_dfu_device_get_transfer_size:
- * @device: a #GUsbDevice
+ * @device: a USB device
  *
  * Gets the transfer size in bytes.
  *
- * Return value: packet size, or 0 for unknown
+ * Returns: packet size, or 0 for unknown
  **/
 guint16
 fu_dfu_device_get_transfer_size (FuDfuDevice *self)
@@ -164,7 +157,7 @@ fu_dfu_device_get_transfer_size (FuDfuDevice *self)
  *
  * Gets the DFU specification version supported by the device.
  *
- * Return value: integer, or 0 for unknown, e.g. %DFU_VERSION_DFU_1_1
+ * Returns: integer, or 0 for unknown, e.g. %FU_DFU_FIRMARE_VERSION_DFU_1_1
  **/
 guint16
 fu_dfu_device_get_version (FuDfuDevice *self)
@@ -180,7 +173,7 @@ fu_dfu_device_get_version (FuDfuDevice *self)
  *
  * Gets the download timeout in ms.
  *
- * Return value: delay, or 0 for unknown
+ * Returns: delay, or 0 for unknown
  **/
 guint
 fu_dfu_device_get_download_timeout (FuDfuDevice *self)
@@ -233,7 +226,7 @@ fu_dfu_device_parse_iface_data (FuDfuDevice *self, GBytes *iface_data, GError **
 	} else if (sz == sizeof(DfuFuncDescriptor) - 2) {
 		g_warning ("truncated DFU interface data, no bcdDFUVersion");
 		memcpy (&desc, buf, sz);
-		desc.bcdDFUVersion = DFU_VERSION_DFU_1_1;
+		desc.bcdDFUVersion = FU_DFU_FIRMARE_VERSION_DFU_1_1;
 	} else {
 		g_autoptr(GString) bufstr = g_string_new (NULL);
 		for (gsize i = 0; i < sz; i++)
@@ -254,7 +247,7 @@ fu_dfu_device_parse_iface_data (FuDfuDevice *self, GBytes *iface_data, GError **
 	priv->version = GUINT16_FROM_LE (desc.bcdDFUVersion);
 
 	/* ST-specific */
-	if (priv->version == DFU_VERSION_DFUSE &&
+	if (priv->version == FU_DFU_FIRMARE_VERSION_DFUSE &&
 	    desc.bmAttributes & FU_DFU_DEVICE_ATTR_CAN_ACCELERATE)
 		priv->transfer_size = 0x1000;
 
@@ -332,24 +325,24 @@ fu_dfu_device_add_targets (FuDfuDevice *self, GError **error)
 		/* fix up the version */
 		if (priv->force_version > 0)
 			priv->version = priv->force_version;
-		if (priv->version == DFU_VERSION_DFU_1_0 ||
-		    priv->version == DFU_VERSION_DFU_1_1) {
+		if (priv->version == FU_DFU_FIRMARE_VERSION_DFU_1_0 ||
+		    priv->version == FU_DFU_FIRMARE_VERSION_DFU_1_1) {
 			g_debug ("DFU v1.1");
-		} else if (priv->version == DFU_VERSION_ATMEL_AVR) {
+		} else if (priv->version == FU_DFU_FIRMARE_VERSION_ATMEL_AVR) {
 			g_debug ("AVR-DFU support");
-			priv->version = DFU_VERSION_ATMEL_AVR;
-		} else if (priv->version == DFU_VERSION_DFUSE) {
+			priv->version = FU_DFU_FIRMARE_VERSION_ATMEL_AVR;
+		} else if (priv->version == FU_DFU_FIRMARE_VERSION_DFUSE) {
 			g_debug ("STM-DFU support");
 		} else if (priv->version == 0x0101) {
 			g_debug ("DFU v1.1 assumed");
-			priv->version = DFU_VERSION_DFU_1_1;
+			priv->version = FU_DFU_FIRMARE_VERSION_DFU_1_1;
 		} else {
 			g_warning ("DFU version 0x%04x invalid, v1.1 assumed", priv->version);
-			priv->version = DFU_VERSION_DFU_1_1;
+			priv->version = FU_DFU_FIRMARE_VERSION_DFU_1_1;
 		}
 
 		/* set expected protocol */
-		if (priv->version == DFU_VERSION_DFUSE) {
+		if (priv->version == FU_DFU_FIRMARE_VERSION_DFUSE) {
 			fu_device_add_protocol (FU_DEVICE (self), "com.st.dfuse");
 		} else {
 			fu_device_add_protocol (FU_DEVICE (self), "org.usb.dfu");
@@ -372,10 +365,10 @@ fu_dfu_device_add_targets (FuDfuDevice *self, GError **error)
 
 		/* create a target of the required type */
 		switch (priv->version) {
-		case DFU_VERSION_DFUSE:
+		case FU_DFU_FIRMARE_VERSION_DFUSE:
 			target = fu_dfu_target_stm_new ();
 			break;
-		case DFU_VERSION_ATMEL_AVR:
+		case FU_DFU_FIRMARE_VERSION_ATMEL_AVR:
 			target = fu_dfu_target_avr_new ();
 			break;
 		default:
@@ -436,7 +429,7 @@ fu_dfu_device_add_targets (FuDfuDevice *self, GError **error)
  *
  * Gets if the device can upload.
  *
- * Return value: %TRUE if the device can upload from device to host
+ * Returns: %TRUE if the device can upload from device to host
  **/
 gboolean
 fu_dfu_device_can_upload (FuDfuDevice *self)
@@ -452,7 +445,7 @@ fu_dfu_device_can_upload (FuDfuDevice *self)
  *
  * Gets if the device can download.
  *
- * Return value: %TRUE if the device can download from host to device
+ * Returns: %TRUE if the device can download from host to device
  **/
 gboolean
 fu_dfu_device_can_download (FuDfuDevice *self)
@@ -483,7 +476,7 @@ fu_dfu_device_set_timeout (FuDfuDevice *self, guint timeout_ms)
  *
  * Gets the device timeout.
  *
- * Return value: enumerated timeout in ms
+ * Returns: enumerated timeout in ms
  **/
 guint
 fu_dfu_device_get_timeout (FuDfuDevice *self)
@@ -499,7 +492,7 @@ fu_dfu_device_get_timeout (FuDfuDevice *self)
  *
  * Gets the device state.
  *
- * Return value: enumerated state, e.g. %FU_DFU_STATE_DFU_UPLOAD_IDLE
+ * Returns: enumerated state, e.g. %FU_DFU_STATE_DFU_UPLOAD_IDLE
  **/
 FuDfuState
 fu_dfu_device_get_state (FuDfuDevice *self)
@@ -511,11 +504,11 @@ fu_dfu_device_get_state (FuDfuDevice *self)
 
 /**
  * fu_dfu_device_get_status:
- * @device: a #GUsbDevice
+ * @device: a USB device
  *
  * Gets the device status.
  *
- * Return value: enumerated status, e.g. %FU_DFU_STATUS_ERR_ADDRESS
+ * Returns: enumerated status, e.g. %FU_DFU_STATUS_ERR_ADDRESS
  **/
 FuDfuStatus
 fu_dfu_device_get_status (FuDfuDevice *self)
@@ -528,11 +521,11 @@ fu_dfu_device_get_status (FuDfuDevice *self)
 /**
  * fu_dfu_device_has_attribute: (skip)
  * @self: a #FuDfuDevice
- * @attribute: A #FuDfuDeviceAttrs, e.g. %FU_DFU_DEVICE_ATTR_CAN_DOWNLOAD
+ * @attribute: a device attribute, e.g. %FU_DFU_DEVICE_ATTR_CAN_DOWNLOAD
  *
  * Returns if an attribute set for the device.
  *
- * Return value: %TRUE if the attribute is set
+ * Returns: %TRUE if the attribute is set
  **/
 gboolean
 fu_dfu_device_has_attribute (FuDfuDevice *self, FuDfuDeviceAttrs attribute)
@@ -545,7 +538,7 @@ fu_dfu_device_has_attribute (FuDfuDevice *self, FuDfuDeviceAttrs attribute)
 /**
  * fu_dfu_device_remove_attribute: (skip)
  * @self: a #FuDfuDevice
- * @attribute: A #FuDfuDeviceAttrs, e.g. %FU_DFU_DEVICE_ATTR_CAN_DOWNLOAD
+ * @attribute: a device attribute, e.g. %FU_DFU_DEVICE_ATTR_CAN_DOWNLOAD
  *
  * Removes an attribute from the device.
  **/
@@ -562,7 +555,7 @@ fu_dfu_device_remove_attribute (FuDfuDevice *self, FuDfuDeviceAttrs attribute)
  *
  * Creates a new DFU device object.
  *
- * Return value: a new #FuDfuDevice
+ * Returns: a new #FuDfuDevice
  **/
 FuDfuDevice *
 fu_dfu_device_new (GUsbDevice *usb_device)
@@ -580,7 +573,7 @@ fu_dfu_device_new (GUsbDevice *usb_device)
  *
  * Gets all the targets for this device.
  *
- * Return value: (transfer none) (element-type FuDfuTarget): #FuDfuTarget, or %NULL
+ * Returns: (transfer none) (element-type FuDfuTarget): #FuDfuTarget, or %NULL
  **/
 GPtrArray *
 fu_dfu_device_get_targets (FuDfuDevice *self)
@@ -594,11 +587,11 @@ fu_dfu_device_get_targets (FuDfuDevice *self)
  * fu_dfu_device_get_target_by_alt_setting:
  * @self: a #FuDfuDevice
  * @alt_setting: the setting used to find
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets a target with a specific alternative setting.
  *
- * Return value: (transfer full): a #FuDfuTarget, or %NULL
+ * Returns: (transfer full): a #FuDfuTarget, or %NULL
  **/
 FuDfuTarget *
 fu_dfu_device_get_target_by_alt_setting (FuDfuDevice *self,
@@ -630,11 +623,11 @@ fu_dfu_device_get_target_by_alt_setting (FuDfuDevice *self,
  * fu_dfu_device_get_target_by_alt_name:
  * @self: a #FuDfuDevice
  * @alt_name: the name used to find
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets a target with a specific alternative name.
  *
- * Return value: (transfer full): a #FuDfuTarget, or %NULL
+ * Returns: (transfer full): a #FuDfuTarget, or %NULL
  **/
 FuDfuTarget *
 fu_dfu_device_get_target_by_alt_name (FuDfuDevice *self,
@@ -668,7 +661,7 @@ fu_dfu_device_get_target_by_alt_name (FuDfuDevice *self,
  *
  * Gets the platform ID which normally corresponds to the port in some way.
  *
- * Return value: string or %NULL
+ * Returns: string or %NULL
  **/
 const gchar *
 fu_dfu_device_get_platform_id (FuDfuDevice *self)
@@ -684,7 +677,7 @@ fu_dfu_device_get_platform_id (FuDfuDevice *self)
  *
  * Gets the runtime vendor ID.
  *
- * Return value: vendor ID, or 0xffff for unknown
+ * Returns: vendor ID, or 0xffff for unknown
  **/
 guint16
 fu_dfu_device_get_runtime_vid (FuDfuDevice *self)
@@ -700,7 +693,7 @@ fu_dfu_device_get_runtime_vid (FuDfuDevice *self)
  *
  * Gets the runtime product ID.
  *
- * Return value: product ID, or 0xffff for unknown
+ * Returns: product ID, or 0xffff for unknown
  **/
 guint16
 fu_dfu_device_get_runtime_pid (FuDfuDevice *self)
@@ -716,7 +709,7 @@ fu_dfu_device_get_runtime_pid (FuDfuDevice *self)
  *
  * Gets the runtime release number in BCD format.
  *
- * Return value: release number, or 0xffff for unknown
+ * Returns: release number, or 0xffff for unknown
  **/
 guint16
 fu_dfu_device_get_runtime_release (FuDfuDevice *self)
@@ -805,13 +798,13 @@ fu_dfu_device_ensure_interface (FuDfuDevice *self, GError **error)
 /**
  * fu_dfu_device_refresh_and_clear:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Refreshes the cached properties on the DFU device. If there are any transers
  * in progress they are cancelled, and if there are any pending errors they are
  * cancelled.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 gboolean
 fu_dfu_device_refresh_and_clear (FuDfuDevice *self, GError **error)
@@ -841,11 +834,11 @@ fu_dfu_device_refresh_and_clear (FuDfuDevice *self, GError **error)
 /**
  * fu_dfu_device_refresh:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Refreshes the cached properties on the DFU device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 gboolean
 fu_dfu_device_refresh (FuDfuDevice *self, GError **error)
@@ -1048,11 +1041,11 @@ fu_dfu_device_detach (FuDevice *device, GError **error)
 /**
  * fu_dfu_device_abort:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Aborts any upload or download in progress.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 gboolean
 fu_dfu_device_abort (FuDfuDevice *self, GError **error)
@@ -1115,11 +1108,11 @@ fu_dfu_device_abort (FuDfuDevice *self, GError **error)
 /**
  * fu_dfu_device_clear_status:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Clears any error status on the DFU device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 gboolean
 fu_dfu_device_clear_status (FuDfuDevice *self, GError **error)
@@ -1195,11 +1188,11 @@ fu_dfu_device_get_interface (FuDfuDevice *self)
 /**
  * fu_dfu_device_open:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Opens a DFU-capable device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_device_open (FuDevice *device, GError **error)
@@ -1283,11 +1276,11 @@ fu_dfu_device_open (FuDevice *device, GError **error)
 /**
  * fu_dfu_device_close:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Closes a DFU device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_device_close (FuDevice *device, GError **error)
@@ -1302,8 +1295,12 @@ fu_dfu_device_close (FuDevice *device, GError **error)
 		if (!g_usb_device_release_interface (usb_device,
 						     (gint) priv->iface_number,
 						     0, &error_local)) {
-			g_warning ("failed to release interface: %s",
-				   error_local->message);
+			if (!g_error_matches (error_local,
+					      G_USB_DEVICE_ERROR,
+					      G_USB_DEVICE_ERROR_NO_DEVICE)) {
+				g_warning ("failed to release interface: %s",
+					   error_local->message);
+			}
 		}
 		priv->claimed_interface = FALSE;
 	}
@@ -1349,11 +1346,11 @@ fu_dfu_device_probe (FuDevice *device, GError **error)
 /**
  * fu_dfu_device_reset:
  * @self: a #FuDfuDevice
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Resets the USB device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 gboolean
 fu_dfu_device_reset (FuDfuDevice *self, GError **error)
@@ -1464,12 +1461,12 @@ fu_dfu_device_action_cb (FuDfuTarget *target, FwupdStatus action, FuDfuDevice *s
 /**
  * fu_dfu_device_upload:
  * @self: a #FuDfuDevice
- * @flags: flags to use, e.g. %DFU_TARGET_TRANSFER_FLAG_VERIFY
- * @error: a #GError, or %NULL
+ * @flags: DFU target flags, e.g. %DFU_TARGET_TRANSFER_FLAG_VERIFY
+ * @error: (nullable): optional return location for an error
  *
  * Uploads firmware from the target to the host.
  *
- * Return value: (transfer full): the uploaded firmware, or %NULL for error
+ * Returns: (transfer full): the uploaded firmware, or %NULL for error
  **/
 FuFirmware *
 fu_dfu_device_upload (FuDfuDevice *self,
@@ -1593,6 +1590,9 @@ fu_dfu_device_download (FuDfuDevice *self,
 	if (FU_IS_DFU_FIRMWARE (firmware)) {
 		firmware_vid = fu_dfu_firmware_get_vid (FU_DFU_FIRMWARE (firmware));
 		firmware_pid = fu_dfu_firmware_get_pid (FU_DFU_FIRMWARE (firmware));
+	} else {
+		flags |= DFU_TARGET_TRANSFER_FLAG_WILDCARD_VID;
+		flags |= DFU_TARGET_TRANSFER_FLAG_WILDCARD_PID;
 	}
 
 	/* do we allow wildcard VID:PID matches */
@@ -1649,13 +1649,8 @@ fu_dfu_device_download (FuDfuDevice *self,
 
 	/* download each target */
 	images = fu_firmware_get_images (firmware);
-	if (images->len == 0) {
-		g_set_error_literal (error,
-				     FWUPD_ERROR,
-				     FWUPD_ERROR_INVALID_FILE,
-				     "no images in firmware file");
-		return FALSE;
-	}
+	if (images->len == 0)
+		g_ptr_array_add (images, g_object_ref (firmware));
 	for (guint i = 0; i < images->len; i++) {
 		FuFirmware *image = g_ptr_array_index (images, i);
 		FuDfuTargetTransferFlags flags_local = DFU_TARGET_TRANSFER_FLAG_NONE;
@@ -1873,7 +1868,7 @@ fu_dfu_device_set_quirk_kv (FuDevice *device,
  *
  * Gets a string describing the attributes for a device.
  *
- * Return value: a string, possibly empty
+ * Returns: a string, possibly empty
  **/
 gchar *
 fu_dfu_device_get_attributes_as_string (FuDfuDevice *self)

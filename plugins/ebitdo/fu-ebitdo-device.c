@@ -6,9 +6,8 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
-
-#include "fu-chunk.h"
 
 #include "fu-ebitdo-common.h"
 #include "fu-ebitdo-device.h"
@@ -262,7 +261,7 @@ fu_ebitdo_device_validate (FuEbitdoDevice *self, GError **error)
 		     G_IO_ERROR,
 		     G_IO_ERROR_INVALID_DATA,
 		     "vendor '%s' did not match allowlist, "
-		     "probably not a 8Bitdo device…", ven);
+		     "probably not a 8BitDo device…", ven);
 	return FALSE;
 }
 
@@ -276,7 +275,7 @@ fu_ebitdo_device_open (FuDevice *device, GError **error)
 	if (!FU_DEVICE_CLASS (fu_ebitdo_device_parent_class)->open (device, error))
 		return FALSE;
 
-	/* open, then ensure this is actually 8Bitdo hardware */
+	/* open, then ensure this is actually 8BitDo hardware */
 	if (!fu_ebitdo_device_validate (self, error))
 		return FALSE;
 	if (!g_usb_device_claim_interface (usb_device, 0, /* 0 = idx? */
@@ -296,6 +295,10 @@ fu_ebitdo_device_setup (FuDevice *device, GError **error)
 	gdouble tmp;
 	guint32 version_tmp = 0;
 	guint32 serial_tmp[9] = {0};
+
+	/* FuUsbDevice->setup */
+	if (!FU_DEVICE_CLASS (fu_ebitdo_device_parent_class)->setup (device, error))
+		return FALSE;
 
 	/* in firmware mode */
 	if (!fu_device_has_flag (FU_DEVICE (self), FWUPD_DEVICE_FLAG_IS_BOOTLOADER)) {
@@ -389,6 +392,7 @@ fu_ebitdo_device_write_firmware (FuDevice *device,
 		case 0xab12: /* NES30 */
 		case 0xab21: /* SFC30 */
 		case 0xab20: /* SNES30 */
+		case 0x9012: /* SN30v2 */
 			g_string_append (msg, "hold down L+R+START for 3 seconds until "
 					      "both LED lights flashing, ");
 			break;
@@ -408,6 +412,15 @@ fu_ebitdo_device_write_firmware (FuDevice *device,
 		case 0x5006: /* M30 */
 			g_string_append (msg, "press and hold L1+R1+START for 3 seconds "
 					      "until the LED on top blinks red, ");
+			break;
+		case 0x2100: /* SN30 for Android */
+		case 0x2101: /* SN30 for Android */
+			g_string_append (msg, "press and hold LB+RB+Xbox buttons "
+					      "both white LED and green LED blink, ");
+			break;
+		case 0x9015: /* N30 Pro 2 */
+ 		    g_string_append (msg, "press and hold L1+R1+START buttons "
+ 					      "until the yellow LED blinks, ");
 			break;
 		default:
 			g_string_append (msg, "do what it says in the manual, ");
@@ -563,7 +576,7 @@ fu_ebitdo_device_probe (FuDevice *device, GError **error)
 
 	/* set name and vendor */
 	fu_device_set_summary (device, "A redesigned classic game controller");
-	fu_device_set_vendor (device, "8Bitdo");
+	fu_device_set_vendor (device, "8BitDo");
 
 	/* add a hardcoded icon name */
 	fu_device_add_icon (device, "input-gaming");

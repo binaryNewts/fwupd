@@ -14,12 +14,12 @@
 /**
  * fu_common_cab_build_silo: (skip):
  * @blob: A readable blob
- * @size_max: The maximum size of the archive
+ * @size_max: the maximum size of the archive
  * @error: A #FuEndianType, e.g. %G_LITTLE_ENDIAN
  *
  * Create an AppStream silo from a cabinet archive.
  *
- * Returns: a #XbSilo, or %NULL on error
+ * Returns: (transfer full): a #XbSilo, or %NULL on error
  *
  * Since: 1.2.0
  **/

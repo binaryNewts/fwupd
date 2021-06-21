@@ -12,8 +12,13 @@
 #include "fwupd-release.h"
 
 #ifdef HAVE_GIO_UNIX
+#include <glib/gstdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
+#endif
+
+#ifdef HAVE_MEMFD_CREATE
 #include <sys/mman.h>
 #endif
 
@@ -30,11 +35,11 @@
 
 /**
  * fwupd_checksum_guess_kind:
- * @checksum: A checksum
+ * @checksum: a checksum
  *
  * Guesses the checksum kind based on the length of the hash.
  *
- * Returns: a #GChecksumType, e.g. %G_CHECKSUM_SHA1
+ * Returns: a checksum type, e.g. %G_CHECKSUM_SHA1
  *
  * Since: 0.9.3
  **/
@@ -72,7 +77,7 @@ fwupd_checksum_type_to_string_display (GChecksumType checksum_type)
 
 /**
  * fwupd_checksum_format_for_display:
- * @checksum: A checksum
+ * @checksum: a checksum
  *
  * Formats a checksum for display.
  *
@@ -92,7 +97,7 @@ fwupd_checksum_format_for_display (const gchar *checksum)
 /**
  * fwupd_checksum_get_by_kind:
  * @checksums: (element-type utf8): checksums
- * @kind: a #GChecksumType, e.g. %G_CHECKSUM_SHA512
+ * @kind: a checksum type, e.g. %G_CHECKSUM_SHA512
  *
  * Gets a specific checksum kind.
  *
@@ -141,7 +146,7 @@ fwupd_checksum_get_best (GPtrArray *checksums)
 
 /**
  * fwupd_get_os_release:
- * @error: A #GError or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Loads information from the system os-release file.
  *
@@ -293,8 +298,8 @@ fwupd_build_user_agent_system (void)
 
 /**
  * fwupd_build_user_agent:
- * @package_name: client program name, e.g. "gnome-software"
- * @package_version: client program version, e.g. "3.28.1"
+ * @package_name: client program name, e.g. `gnome-software`
+ * @package_version: client program version, e.g. `3.28.1`
  *
  * Builds a user-agent to use for the download.
  *
@@ -306,7 +311,7 @@ fwupd_build_user_agent_system (void)
  * Before freaking out about theoretical privacy implications, much more data
  * than this is sent to each and every website you visit.
  *
- * Rather that using this function you should use fwupd_client_set_user_agent_for_package()
+ * Rather that using this function you should use [method@Client.set_user_agent_for_package]
  * which uses the *runtime* version of the daemon rather than the *build-time*
  * version.
  *
@@ -338,8 +343,8 @@ fwupd_build_user_agent (const gchar *package_name, const gchar *package_version)
 
 /**
  * fwupd_build_machine_id:
- * @salt: The salt, or %NULL for none
- * @error: A #GError or %NULL
+ * @salt: (nullable): optional salt
+ * @error: (nullable): optional return location for an error
  *
  * Gets a salted hash of the /etc/machine-id contents. This can be used to
  * identify a specific machine. It is not possible to recover the original
@@ -358,7 +363,6 @@ fwupd_build_machine_id (const gchar *salt, GError **error)
 	g_autoptr(GChecksum) csum = NULL;
 	gsize sz = 0;
 
-	g_return_val_if_fail (salt != NULL, NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
 	/* one of these has to exist */
@@ -524,7 +528,7 @@ fwupd_build_history_report_json_metadata (JsonBuilder *builder, GError **error)
 /**
  * fwupd_build_history_report_json:
  * @devices: (element-type FwupdDevice): devices
- * @error: A #GError or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Builds a JSON report for the list of devices. No filtering is done on the
  * @devices array, and it is expected that the caller will filter to something
@@ -608,11 +612,11 @@ typedef struct __attribute__((packed)) {
 /**
  * fwupd_guid_to_string:
  * @guid: a #fwupd_guid_t to read
- * @flags: some %FwupdGuidFlags, e.g. %FWUPD_GUID_FLAG_MIXED_ENDIAN
+ * @flags: GUID flags, e.g. %FWUPD_GUID_FLAG_MIXED_ENDIAN
  *
  * Returns a text GUID of mixed or BE endian for a packed buffer.
  *
- * Returns: A new GUID
+ * Returns: a new GUID string
  *
  * Since: 1.2.5
  **/
@@ -717,8 +721,8 @@ g_ascii_string_to_unsigned (const gchar *str,
  * fwupd_guid_from_string:
  * @guidstr: (nullable): a GUID, e.g. `00112233-4455-6677-8899-aabbccddeeff`
  * @guid: a #fwupd_guid_t, or NULL to just check the GUID
- * @flags: some %FwupdGuidFlags, e.g. %FWUPD_GUID_FLAG_MIXED_ENDIAN
- * @error: A #GError or %NULL
+ * @flags: GUID flags, e.g. %FWUPD_GUID_FLAG_MIXED_ENDIAN
+ * @error: (nullable): optional return location for an error
  *
  * Converts a string GUID into its binary encoding. All string GUIDs are
  * formatted as big endian but on-disk can be encoded in different ways.
@@ -746,7 +750,7 @@ fwupd_guid_from_string (const gchar *guidstr,
 		g_set_error_literal (error,
 				     G_IO_ERROR,
 				     G_IO_ERROR_INVALID_DATA,
-				     "is not valid format");
+				     "GUID is not valid format");
 		return FALSE;
 	}
 	split = g_strsplit (guidstr, "-", 5);
@@ -754,7 +758,7 @@ fwupd_guid_from_string (const gchar *guidstr,
 		g_set_error_literal (error,
 				     G_IO_ERROR,
 				     G_IO_ERROR_INVALID_DATA,
-				     "is not valid format, no dashes");
+				     "GUID is not valid format, no dashes");
 		return FALSE;
 	}
 	if (strlen (split[0]) != 8 && strlen (split[1]) != 4 &&
@@ -763,7 +767,7 @@ fwupd_guid_from_string (const gchar *guidstr,
 		g_set_error_literal (error,
 				     G_IO_ERROR,
 				     G_IO_ERROR_INVALID_DATA,
-				     "is not valid format, not GUID");
+				     "GUID is not valid format, not GUID");
 		return FALSE;
 	}
 
@@ -798,7 +802,7 @@ fwupd_guid_from_string (const gchar *guidstr,
  * fwupd_guid_hash_data:
  * @data: data to hash
  * @datasz: length of @data
- * @flags: some %FwupdGuidFlags, e.g. %FWUPD_GUID_FLAG_NAMESPACE_MICROSOFT
+ * @flags: GUID flags, e.g. %FWUPD_GUID_FLAG_NAMESPACE_MICROSOFT
  *
  * Returns a GUID for some data. This uses a hash and so even small
  * differences in the @data will produce radically different return values.
@@ -806,7 +810,7 @@ fwupd_guid_from_string (const gchar *guidstr,
  * The implementation is taken from RFC4122, Section 4.1.3; specifically
  * using a type-5 SHA-1 hash.
  *
- * Returns: A new GUID, or %NULL for internal error
+ * Returns: a new GUID, or %NULL for internal error
  *
  * Since: 1.2.5
  **/
@@ -899,7 +903,7 @@ fwupd_guid_is_valid (const gchar *guid)
 
 /**
  * fwupd_guid_hash_string:
- * @str: A source string to use as a key
+ * @str: a source string to use as a key
  *
  * Returns a GUID for a given string. This uses a hash and so even small
  * differences in the @str will produce radically different return values.
@@ -912,7 +916,7 @@ fwupd_guid_is_valid (const gchar *guid)
  *    import uuid
  *    print uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org')
  *
- * Returns: A new GUID, or %NULL if the string was invalid
+ * Returns: a new GUID, or %NULL if the string was invalid
  *
  * Since: 1.2.5
  **/
@@ -1055,11 +1059,33 @@ fwupd_input_stream_read_bytes_finish (GInputStream *stream,
 GUnixInputStream *
 fwupd_unix_input_stream_from_bytes (GBytes *bytes, GError **error)
 {
-#ifdef HAVE_MEMFD_CREATE
 	gint fd;
 	gssize rc;
+#ifndef HAVE_MEMFD_CREATE
+	gchar tmp_file[] = "/tmp/fwupd.XXXXXX";
+#endif
 
+#ifdef HAVE_MEMFD_CREATE
 	fd = memfd_create ("fwupd", MFD_CLOEXEC);
+#else
+	/* emulate in-memory file by an unlinked temporary file */
+	fd = g_mkstemp (tmp_file);
+	if (fd != -1) {
+		rc = g_unlink (tmp_file);
+		if (rc != 0) {
+			if (!g_close (fd, error)) {
+				g_prefix_error (error, "failed to close temporary file: ");
+				return NULL;
+			}
+			g_set_error_literal (error,
+					     FWUPD_ERROR,
+					     FWUPD_ERROR_INVALID_FILE,
+					     "failed to unlink temporary file");
+			return NULL;
+		}
+	}
+#endif
+
 	if (fd < 0) {
 		g_set_error_literal (error,
 				     FWUPD_ERROR,
@@ -1083,13 +1109,6 @@ fwupd_unix_input_stream_from_bytes (GBytes *bytes, GError **error)
 		return NULL;
 	}
 	return G_UNIX_INPUT_STREAM (g_unix_input_stream_new (fd, TRUE));
-#else
-	g_set_error_literal (error,
-			     FWUPD_ERROR,
-			     FWUPD_ERROR_INTERNAL,
-			     "memfd_create() not available");
-	return NULL;
-#endif
 }
 
 /**

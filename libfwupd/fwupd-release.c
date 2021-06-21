@@ -16,14 +16,14 @@
 #include "fwupd-release-private.h"
 
 /**
- * SECTION:fwupd-release
- * @short_description: a firmware release
+ * FwupdRelease:
  *
- * An object that represents a firmware release with a specific version.
+ * A firmware release with a specific version.
+ *
  * Devices can have more than one release, and the releases are typically
  * ordered by their version.
  *
- * See also: #FwupdDevice
+ * See also: [class@FwupdDevice]
  */
 
 static void fwupd_release_finalize	 (GObject *object);
@@ -69,7 +69,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (FwupdRelease, fwupd_release, G_TYPE_OBJECT)
 
 /**
  * fwupd_release_get_remote_id:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the remote ID that can be used for downloading.
  *
@@ -78,16 +78,16 @@ G_DEFINE_TYPE_WITH_PRIVATE (FwupdRelease, fwupd_release, G_TYPE_OBJECT)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_remote_id (FwupdRelease *release)
+fwupd_release_get_remote_id (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->remote_id;
 }
 
 /**
  * fwupd_release_set_remote_id:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @remote_id: the release ID, e.g. `USB:foo`
  *
  * Sets the remote ID that can be used for downloading.
@@ -95,10 +95,10 @@ fwupd_release_get_remote_id (FwupdRelease *release)
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_remote_id (FwupdRelease *release, const gchar *remote_id)
+fwupd_release_set_remote_id (FwupdRelease *self, const gchar *remote_id)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->remote_id, remote_id) == 0)
@@ -110,7 +110,7 @@ fwupd_release_set_remote_id (FwupdRelease *release, const gchar *remote_id)
 
 /**
  * fwupd_release_get_version:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update version.
  *
@@ -119,16 +119,16 @@ fwupd_release_set_remote_id (FwupdRelease *release, const gchar *remote_id)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_version (FwupdRelease *release)
+fwupd_release_get_version (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->version;
 }
 
 /**
  * fwupd_release_set_version:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @version: the update version, e.g. `1.2.4`
  *
  * Sets the update version.
@@ -136,10 +136,10 @@ fwupd_release_get_version (FwupdRelease *release)
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_version (FwupdRelease *release, const gchar *version)
+fwupd_release_set_version (FwupdRelease *self, const gchar *version)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->version, version) == 0)
@@ -151,7 +151,7 @@ fwupd_release_set_version (FwupdRelease *release, const gchar *version)
 
 /**
  * fwupd_release_get_filename:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update filename.
  *
@@ -160,16 +160,16 @@ fwupd_release_set_version (FwupdRelease *release, const gchar *version)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_filename (FwupdRelease *release)
+fwupd_release_get_filename (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->filename;
 }
 
 /**
  * fwupd_release_set_filename:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @filename: the update filename on disk
  *
  * Sets the update filename.
@@ -177,10 +177,10 @@ fwupd_release_get_filename (FwupdRelease *release)
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_filename (FwupdRelease *release, const gchar *filename)
+fwupd_release_set_filename (FwupdRelease *self, const gchar *filename)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->filename, filename) == 0)
@@ -192,7 +192,7 @@ fwupd_release_set_filename (FwupdRelease *release, const gchar *filename)
 
 /**
  * fwupd_release_get_update_message:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update message.
  *
@@ -201,27 +201,27 @@ fwupd_release_set_filename (FwupdRelease *release, const gchar *filename)
  * Since: 1.2.4
  **/
 const gchar *
-fwupd_release_get_update_message (FwupdRelease *release)
+fwupd_release_get_update_message (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->update_message;
 }
 
 /**
  * fwupd_release_set_update_message:
- * @release: A #FwupdRelease
- * @update_message: the update message string
+ * @self: a #FwupdRelease
+ * @update_message: (nullable): the update message string
  *
  * Sets the update message.
  *
  * Since: 1.2.4
  **/
 void
-fwupd_release_set_update_message (FwupdRelease *release, const gchar *update_message)
+fwupd_release_set_update_message (FwupdRelease *self, const gchar *update_message)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->update_message, update_message) == 0)
@@ -233,7 +233,7 @@ fwupd_release_set_update_message (FwupdRelease *release, const gchar *update_mes
 
 /**
  * fwupd_release_get_update_image:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update image.
  *
@@ -242,27 +242,27 @@ fwupd_release_set_update_message (FwupdRelease *release, const gchar *update_mes
  * Since: 1.4.5
  **/
 const gchar *
-fwupd_release_get_update_image (FwupdRelease *release)
+fwupd_release_get_update_image (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->update_image;
 }
 
 /**
  * fwupd_release_set_update_image:
- * @release: A #FwupdRelease
- * @update_image: the update image URL
+ * @self: a #FwupdRelease
+ * @update_image: (nullable): the update image URL
  *
  * Sets the update image.
  *
  * Since: 1.4.5
  **/
 void
-fwupd_release_set_update_image (FwupdRelease *release, const gchar *update_image)
+fwupd_release_set_update_image (FwupdRelease *self, const gchar *update_image)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->update_image, update_image) == 0)
@@ -274,7 +274,7 @@ fwupd_release_set_update_image (FwupdRelease *release, const gchar *update_image
 
 /**
  * fwupd_release_get_protocol:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update protocol.
  *
@@ -283,27 +283,27 @@ fwupd_release_set_update_image (FwupdRelease *release, const gchar *update_image
  * Since: 1.2.2
  **/
 const gchar *
-fwupd_release_get_protocol (FwupdRelease *release)
+fwupd_release_get_protocol (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->protocol;
 }
 
 /**
  * fwupd_release_set_protocol:
- * @release: A #FwupdRelease
- * @protocol: the update protocol, e.g. `org.usb.dfu`
+ * @self: a #FwupdRelease
+ * @protocol: (nullable): the update protocol, e.g. `org.usb.dfu`
  *
  * Sets the update protocol.
  *
  * Since: 1.2.2
  **/
 void
-fwupd_release_set_protocol (FwupdRelease *release, const gchar *protocol)
+fwupd_release_set_protocol (FwupdRelease *self, const gchar *protocol)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->protocol, protocol) == 0)
@@ -315,7 +315,7 @@ fwupd_release_set_protocol (FwupdRelease *release, const gchar *protocol)
 
 /**
  * fwupd_release_get_issues:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the list of issues fixed in this release.
  *
@@ -324,16 +324,16 @@ fwupd_release_set_protocol (FwupdRelease *release, const gchar *protocol)
  * Since: 1.3.2
  **/
 GPtrArray *
-fwupd_release_get_issues (FwupdRelease *release)
+fwupd_release_get_issues (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->issues;
 }
 
 /**
  * fwupd_release_add_issue:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @issue: the update issue, e.g. `CVE-2019-12345`
  *
  * Adds an resolved issue to this release.
@@ -341,10 +341,10 @@ fwupd_release_get_issues (FwupdRelease *release)
  * Since: 1.3.2
  **/
 void
-fwupd_release_add_issue (FwupdRelease *release, const gchar *issue)
+fwupd_release_add_issue (FwupdRelease *self, const gchar *issue)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (issue != NULL);
 	for (guint i = 0; i < priv->issues->len; i++) {
 		const gchar *issue_tmp = g_ptr_array_index (priv->issues, i);
@@ -356,7 +356,7 @@ fwupd_release_add_issue (FwupdRelease *release, const gchar *issue)
 
 /**
  * fwupd_release_get_categories:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the release categories.
  *
@@ -365,16 +365,16 @@ fwupd_release_add_issue (FwupdRelease *release, const gchar *issue)
  * Since: 1.2.7
  **/
 GPtrArray *
-fwupd_release_get_categories (FwupdRelease *release)
+fwupd_release_get_categories (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->categories;
 }
 
 /**
  * fwupd_release_add_category:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @category: the update category, e.g. `X-EmbeddedController`
  *
  * Adds the update category.
@@ -382,10 +382,10 @@ fwupd_release_get_categories (FwupdRelease *release)
  * Since: 1.2.7
  **/
 void
-fwupd_release_add_category (FwupdRelease *release, const gchar *category)
+fwupd_release_add_category (FwupdRelease *self, const gchar *category)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (category != NULL);
 	for (guint i = 0; i < priv->categories->len; i++) {
 		const gchar *category_tmp = g_ptr_array_index (priv->categories, i);
@@ -397,7 +397,7 @@ fwupd_release_add_category (FwupdRelease *release, const gchar *category)
 
 /**
  * fwupd_release_has_category:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @category: the update category, e.g. `X-EmbeddedController`
  *
  * Finds out if the release has the update category.
@@ -407,10 +407,10 @@ fwupd_release_add_category (FwupdRelease *release, const gchar *category)
  * Since: 1.2.7
  **/
 gboolean
-fwupd_release_has_category (FwupdRelease *release, const gchar *category)
+fwupd_release_has_category (FwupdRelease *self, const gchar *category)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), FALSE);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), FALSE);
 	g_return_val_if_fail (category != NULL, FALSE);
 	for (guint i = 0; i < priv->categories->len; i++) {
 		const gchar *category_tmp = g_ptr_array_index (priv->categories, i);
@@ -422,7 +422,7 @@ fwupd_release_has_category (FwupdRelease *release, const gchar *category)
 
 /**
  * fwupd_release_get_checksums:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the release checksums.
  *
@@ -431,16 +431,16 @@ fwupd_release_has_category (FwupdRelease *release, const gchar *category)
  * Since: 0.9.3
  **/
 GPtrArray *
-fwupd_release_get_checksums (FwupdRelease *release)
+fwupd_release_get_checksums (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->checksums;
 }
 
 /**
  * fwupd_release_add_checksum:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @checksum: the update checksum
  *
  * Sets the update checksum.
@@ -448,10 +448,10 @@ fwupd_release_get_checksums (FwupdRelease *release)
  * Since: 0.9.3
  **/
 void
-fwupd_release_add_checksum (FwupdRelease *release, const gchar *checksum)
+fwupd_release_add_checksum (FwupdRelease *self, const gchar *checksum)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (checksum != NULL);
 	for (guint i = 0; i < priv->checksums->len; i++) {
 		const gchar *checksum_tmp = g_ptr_array_index (priv->checksums, i);
@@ -463,7 +463,7 @@ fwupd_release_add_checksum (FwupdRelease *release, const gchar *checksum)
 
 /**
  * fwupd_release_has_checksum:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @checksum: the update checksum
  *
  * Finds out if the release has the update checksum.
@@ -473,10 +473,10 @@ fwupd_release_add_checksum (FwupdRelease *release, const gchar *checksum)
  * Since: 1.2.6
  **/
 gboolean
-fwupd_release_has_checksum (FwupdRelease *release, const gchar *checksum)
+fwupd_release_has_checksum (FwupdRelease *self, const gchar *checksum)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), FALSE);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), FALSE);
 	g_return_val_if_fail (checksum != NULL, FALSE);
 	for (guint i = 0; i < priv->checksums->len; i++) {
 		const gchar *checksum_tmp = g_ptr_array_index (priv->checksums, i);
@@ -488,7 +488,7 @@ fwupd_release_has_checksum (FwupdRelease *release, const gchar *checksum)
 
 /**
  * fwupd_release_get_metadata:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the release metadata.
  *
@@ -497,16 +497,16 @@ fwupd_release_has_checksum (FwupdRelease *release, const gchar *checksum)
  * Since: 1.0.4
  **/
 GHashTable *
-fwupd_release_get_metadata (FwupdRelease *release)
+fwupd_release_get_metadata (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->metadata;
 }
 
 /**
  * fwupd_release_add_metadata_item:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @key: the key
  * @value: the value
  *
@@ -515,10 +515,10 @@ fwupd_release_get_metadata (FwupdRelease *release)
  * Since: 1.0.4
  **/
 void
-fwupd_release_add_metadata_item (FwupdRelease *release, const gchar *key, const gchar *value)
+fwupd_release_add_metadata_item (FwupdRelease *self, const gchar *key, const gchar *value)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (key != NULL);
 	g_return_if_fail (value != NULL);
 	g_hash_table_insert (priv->metadata, g_strdup (key), g_strdup (value));
@@ -526,7 +526,7 @@ fwupd_release_add_metadata_item (FwupdRelease *release, const gchar *key, const 
 
 /**
  * fwupd_release_add_metadata:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @hash: the key-values
  *
  * Sets multiple release metadata items.
@@ -534,12 +534,12 @@ fwupd_release_add_metadata_item (FwupdRelease *release, const gchar *key, const 
  * Since: 1.0.4
  **/
 void
-fwupd_release_add_metadata (FwupdRelease *release, GHashTable *hash)
+fwupd_release_add_metadata (FwupdRelease *self, GHashTable *hash)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 	g_autoptr(GList) keys = NULL;
 
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (hash != NULL);
 
 	/* deep copy the whole map */
@@ -553,7 +553,7 @@ fwupd_release_add_metadata (FwupdRelease *release, GHashTable *hash)
 
 /**
  * fwupd_release_get_metadata_item:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @key: the key
  *
  * Gets a release metadata item.
@@ -563,17 +563,17 @@ fwupd_release_add_metadata (FwupdRelease *release, GHashTable *hash)
  * Since: 1.0.4
  **/
 const gchar *
-fwupd_release_get_metadata_item (FwupdRelease *release, const gchar *key)
+fwupd_release_get_metadata_item (FwupdRelease *self, const gchar *key)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	g_return_val_if_fail (key != NULL, NULL);
 	return g_hash_table_lookup (priv->metadata, key);
 }
 
 /**
  * fwupd_release_get_uri:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the default update URI.
  *
@@ -583,10 +583,10 @@ fwupd_release_get_metadata_item (FwupdRelease *release, const gchar *key)
  * Deprecated: 1.5.6: Use fwupd_release_get_locations() instead.
  **/
 const gchar *
-fwupd_release_get_uri (FwupdRelease *release)
+fwupd_release_get_uri (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	if (priv->locations->len == 0)
 		return NULL;
 	return (const gchar *) g_ptr_array_index (priv->locations, 0);
@@ -594,7 +594,7 @@ fwupd_release_get_uri (FwupdRelease *release)
 
 /**
  * fwupd_release_set_uri:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @uri: the update URI
  *
  * Sets the update URI, i.e. where you can download the firmware from.
@@ -603,17 +603,17 @@ fwupd_release_get_uri (FwupdRelease *release)
  * Deprecated: 1.5.6: Use fwupd_release_add_location() instead.
  **/
 void
-fwupd_release_set_uri (FwupdRelease *release, const gchar *uri)
+fwupd_release_set_uri (FwupdRelease *self, const gchar *uri)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_ptr_array_set_size (priv->locations, 0);
 	g_ptr_array_add (priv->locations, g_strdup (uri));
 }
 
 /**
  * fwupd_release_get_locations:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update URI, i.e. where you can download the firmware from.
  *
@@ -625,16 +625,16 @@ fwupd_release_set_uri (FwupdRelease *release, const gchar *uri)
  * Since: 1.5.6
  **/
 GPtrArray *
-fwupd_release_get_locations (FwupdRelease *release)
+fwupd_release_get_locations (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->locations;
 }
 
 /**
  * fwupd_release_add_location:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @location: the update URI
  *
  * Adds an update URI, i.e. where you can download the firmware from.
@@ -642,10 +642,10 @@ fwupd_release_get_locations (FwupdRelease *release)
  * Since: 1.5.6
  **/
 void
-fwupd_release_add_location (FwupdRelease *release, const gchar *location)
+fwupd_release_add_location (FwupdRelease *self, const gchar *location)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (location != NULL);
 	for (guint i = 0; i < priv->locations->len; i++) {
 		const gchar *location_tmp = g_ptr_array_index (priv->locations, i);
@@ -657,7 +657,7 @@ fwupd_release_add_location (FwupdRelease *release, const gchar *location)
 
 /**
  * fwupd_release_get_homepage:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update homepage.
  *
@@ -666,27 +666,27 @@ fwupd_release_add_location (FwupdRelease *release, const gchar *location)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_homepage (FwupdRelease *release)
+fwupd_release_get_homepage (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->homepage;
 }
 
 /**
  * fwupd_release_set_homepage:
- * @release: A #FwupdRelease
- * @homepage: the description
+ * @self: a #FwupdRelease
+ * @homepage: (nullable): the URL
  *
- * Sets the update homepage.
+ * Sets the update homepage URL.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_homepage (FwupdRelease *release, const gchar *homepage)
+fwupd_release_set_homepage (FwupdRelease *self, const gchar *homepage)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->homepage, homepage) == 0)
@@ -698,7 +698,7 @@ fwupd_release_set_homepage (FwupdRelease *release, const gchar *homepage)
 
 /**
  * fwupd_release_get_details_url:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the URL for the online update notes.
  *
@@ -707,27 +707,27 @@ fwupd_release_set_homepage (FwupdRelease *release, const gchar *homepage)
  * Since: 1.2.4
  **/
 const gchar *
-fwupd_release_get_details_url (FwupdRelease *release)
+fwupd_release_get_details_url (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->details_url;
 }
 
 /**
  * fwupd_release_set_details_url:
- * @release: A #FwupdRelease
- * @details_url: the URL
+ * @self: a #FwupdRelease
+ * @details_url: (nullable): the URL
  *
  * Sets the URL for the online update notes.
  *
  * Since: 1.2.4
  **/
 void
-fwupd_release_set_details_url (FwupdRelease *release, const gchar *details_url)
+fwupd_release_set_details_url (FwupdRelease *self, const gchar *details_url)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->details_url, details_url) == 0)
@@ -739,7 +739,7 @@ fwupd_release_set_details_url (FwupdRelease *release, const gchar *details_url)
 
 /**
  * fwupd_release_get_source_url:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the URL of the source code used to build this release.
  *
@@ -748,27 +748,27 @@ fwupd_release_set_details_url (FwupdRelease *release, const gchar *details_url)
  * Since: 1.2.4
  **/
 const gchar *
-fwupd_release_get_source_url (FwupdRelease *release)
+fwupd_release_get_source_url (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->source_url;
 }
 
 /**
  * fwupd_release_set_source_url:
- * @release: A #FwupdRelease
- * @source_url: the URL
+ * @self: a #FwupdRelease
+ * @source_url: (nullable): the URL
  *
  * Sets the URL of the source code used to build this release.
  *
  * Since: 1.2.4
  **/
 void
-fwupd_release_set_source_url (FwupdRelease *release, const gchar *source_url)
+fwupd_release_set_source_url (FwupdRelease *self, const gchar *source_url)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->source_url, source_url) == 0)
@@ -780,7 +780,7 @@ fwupd_release_set_source_url (FwupdRelease *release, const gchar *source_url)
 
 /**
  * fwupd_release_get_description:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update description in AppStream markup format.
  *
@@ -789,27 +789,27 @@ fwupd_release_set_source_url (FwupdRelease *release, const gchar *source_url)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_description (FwupdRelease *release)
+fwupd_release_get_description (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->description;
 }
 
 /**
  * fwupd_release_set_description:
- * @release: A #FwupdRelease
- * @description: the update description in AppStream markup format
+ * @self: a #FwupdRelease
+ * @description: (nullable): the update description in AppStream markup format
  *
  * Sets the update description.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_description (FwupdRelease *release, const gchar *description)
+fwupd_release_set_description (FwupdRelease *self, const gchar *description)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->description, description) == 0)
@@ -821,7 +821,7 @@ fwupd_release_set_description (FwupdRelease *release, const gchar *description)
 
 /**
  * fwupd_release_get_appstream_id:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the AppStream ID.
  *
@@ -830,27 +830,27 @@ fwupd_release_set_description (FwupdRelease *release, const gchar *description)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_appstream_id (FwupdRelease *release)
+fwupd_release_get_appstream_id (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->appstream_id;
 }
 
 /**
  * fwupd_release_set_appstream_id:
- * @release: A #FwupdRelease
- * @appstream_id: the AppStream component ID, e.g. `org.hughski.ColorHug2.firmware`
+ * @self: a #FwupdRelease
+ * @appstream_id: (nullable): the AppStream component ID, e.g. `org.hughski.ColorHug2.firmware`
  *
  * Sets the AppStream ID.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_appstream_id (FwupdRelease *release, const gchar *appstream_id)
+fwupd_release_set_appstream_id (FwupdRelease *self, const gchar *appstream_id)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->appstream_id, appstream_id) == 0)
@@ -862,7 +862,7 @@ fwupd_release_set_appstream_id (FwupdRelease *release, const gchar *appstream_id
 
 /**
  * fwupd_release_get_detach_caption:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the optional text caption used to manually detach the device.
  *
@@ -871,27 +871,27 @@ fwupd_release_set_appstream_id (FwupdRelease *release, const gchar *appstream_id
  * Since: 1.3.3
  **/
 const gchar *
-fwupd_release_get_detach_caption (FwupdRelease *release)
+fwupd_release_get_detach_caption (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->detach_caption;
 }
 
 /**
  * fwupd_release_set_detach_caption:
- * @release: A #FwupdRelease
- * @detach_caption: string caption
+ * @self: a #FwupdRelease
+ * @detach_caption: (nullable): string caption
  *
  * Sets the optional text caption used to manually detach the device.
  *
  * Since: 1.3.3
  **/
 void
-fwupd_release_set_detach_caption (FwupdRelease *release, const gchar *detach_caption)
+fwupd_release_set_detach_caption (FwupdRelease *self, const gchar *detach_caption)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->detach_caption, detach_caption) == 0)
@@ -903,7 +903,7 @@ fwupd_release_set_detach_caption (FwupdRelease *release, const gchar *detach_cap
 
 /**
  * fwupd_release_get_detach_image:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the optional image used to manually detach the device.
  *
@@ -912,27 +912,27 @@ fwupd_release_set_detach_caption (FwupdRelease *release, const gchar *detach_cap
  * Since: 1.3.3
  **/
 const gchar *
-fwupd_release_get_detach_image (FwupdRelease *release)
+fwupd_release_get_detach_image (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->detach_image;
 }
 
 /**
  * fwupd_release_set_detach_image:
- * @release: A #FwupdRelease
- * @detach_image: a fully qualified URI
+ * @self: a #FwupdRelease
+ * @detach_image: (nullable): a fully qualified URI
  *
  * Sets the optional image used to manually detach the device.
  *
  * Since: 1.3.3
  **/
 void
-fwupd_release_set_detach_image (FwupdRelease *release, const gchar *detach_image)
+fwupd_release_set_detach_image (FwupdRelease *self, const gchar *detach_image)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->detach_image, detach_image) == 0)
@@ -944,7 +944,7 @@ fwupd_release_set_detach_image (FwupdRelease *release, const gchar *detach_image
 
 /**
  * fwupd_release_get_size:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update size.
  *
@@ -953,16 +953,16 @@ fwupd_release_set_detach_image (FwupdRelease *release, const gchar *detach_image
  * Since: 0.9.3
  **/
 guint64
-fwupd_release_get_size (FwupdRelease *release)
+fwupd_release_get_size (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), 0);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), 0);
 	return priv->size;
 }
 
 /**
  * fwupd_release_set_size:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @size: the update size in bytes
  *
  * Sets the update size.
@@ -970,16 +970,16 @@ fwupd_release_get_size (FwupdRelease *release)
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_size (FwupdRelease *release, guint64 size)
+fwupd_release_set_size (FwupdRelease *self, guint64 size)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->size = size;
 }
 
 /**
  * fwupd_release_get_created:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets when the update was created.
  *
@@ -988,16 +988,16 @@ fwupd_release_set_size (FwupdRelease *release, guint64 size)
  * Since: 1.4.0
  **/
 guint64
-fwupd_release_get_created (FwupdRelease *release)
+fwupd_release_get_created (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), 0);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), 0);
 	return priv->created;
 }
 
 /**
  * fwupd_release_set_created:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @created: UTC timestamp in UNIX format
  *
  * Sets when the update was created.
@@ -1005,16 +1005,16 @@ fwupd_release_get_created (FwupdRelease *release)
  * Since: 1.4.0
  **/
 void
-fwupd_release_set_created (FwupdRelease *release, guint64 created)
+fwupd_release_set_created (FwupdRelease *self, guint64 created)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->created = created;
 }
 
 /**
  * fwupd_release_get_summary:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update summary.
  *
@@ -1023,27 +1023,27 @@ fwupd_release_set_created (FwupdRelease *release, guint64 created)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_summary (FwupdRelease *release)
+fwupd_release_get_summary (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->summary;
 }
 
 /**
  * fwupd_release_set_summary:
- * @release: A #FwupdRelease
- * @summary: the update one line summary
+ * @self: a #FwupdRelease
+ * @summary: (nullable): the update one line summary
  *
  * Sets the update summary.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_summary (FwupdRelease *release, const gchar *summary)
+fwupd_release_set_summary (FwupdRelease *self, const gchar *summary)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->summary, summary) == 0)
@@ -1055,7 +1055,7 @@ fwupd_release_set_summary (FwupdRelease *release, const gchar *summary)
 
 /**
  * fwupd_release_get_branch:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update branch.
  *
@@ -1064,27 +1064,27 @@ fwupd_release_set_summary (FwupdRelease *release, const gchar *summary)
  * Since: 1.5.0
  **/
 const gchar *
-fwupd_release_get_branch (FwupdRelease *release)
+fwupd_release_get_branch (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->branch;
 }
 
 /**
  * fwupd_release_set_branch:
- * @release: A #FwupdRelease
- * @branch: the update one line branch
+ * @self: a #FwupdRelease
+ * @branch: (nullable): the update one line branch
  *
  * Sets the alternate branch.
  *
  * Since: 1.5.0
  **/
 void
-fwupd_release_set_branch (FwupdRelease *release, const gchar *branch)
+fwupd_release_set_branch (FwupdRelease *self, const gchar *branch)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->branch, branch) == 0)
@@ -1096,7 +1096,7 @@ fwupd_release_set_branch (FwupdRelease *release, const gchar *branch)
 
 /**
  * fwupd_release_get_vendor:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update vendor.
  *
@@ -1105,27 +1105,27 @@ fwupd_release_set_branch (FwupdRelease *release, const gchar *branch)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_vendor (FwupdRelease *release)
+fwupd_release_get_vendor (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->vendor;
 }
 
 /**
  * fwupd_release_set_vendor:
- * @release: A #FwupdRelease
- * @vendor: the vendor name, e.g. `Hughski Limited`
+ * @self: a #FwupdRelease
+ * @vendor: (nullable): the vendor name, e.g. `Hughski Limited`
  *
  * Sets the update vendor.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_vendor (FwupdRelease *release, const gchar *vendor)
+fwupd_release_set_vendor (FwupdRelease *self, const gchar *vendor)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->vendor, vendor) == 0)
@@ -1137,7 +1137,7 @@ fwupd_release_set_vendor (FwupdRelease *release, const gchar *vendor)
 
 /**
  * fwupd_release_get_license:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update license.
  *
@@ -1146,27 +1146,27 @@ fwupd_release_set_vendor (FwupdRelease *release, const gchar *vendor)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_license (FwupdRelease *release)
+fwupd_release_get_license (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->license;
 }
 
 /**
  * fwupd_release_set_license:
- * @release: A #FwupdRelease
- * @license: the description
+ * @self: a #FwupdRelease
+ * @license: (nullable): the description
  *
  * Sets the update license.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_license (FwupdRelease *release, const gchar *license)
+fwupd_release_set_license (FwupdRelease *self, const gchar *license)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->license, license) == 0)
@@ -1178,7 +1178,7 @@ fwupd_release_set_license (FwupdRelease *release, const gchar *license)
 
 /**
  * fwupd_release_get_name:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update name.
  *
@@ -1187,27 +1187,27 @@ fwupd_release_set_license (FwupdRelease *release, const gchar *license)
  * Since: 0.9.3
  **/
 const gchar *
-fwupd_release_get_name (FwupdRelease *release)
+fwupd_release_get_name (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->name;
 }
 
 /**
  * fwupd_release_set_name:
- * @release: A #FwupdRelease
- * @name: the description
+ * @self: a #FwupdRelease
+ * @name: (nullable): the description
  *
  * Sets the update name.
  *
  * Since: 0.9.3
  **/
 void
-fwupd_release_set_name (FwupdRelease *release, const gchar *name)
+fwupd_release_set_name (FwupdRelease *self, const gchar *name)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->name, name) == 0)
@@ -1219,7 +1219,7 @@ fwupd_release_set_name (FwupdRelease *release, const gchar *name)
 
 /**
  * fwupd_release_get_name_variant_suffix:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the update variant suffix.
  *
@@ -1228,27 +1228,27 @@ fwupd_release_set_name (FwupdRelease *release, const gchar *name)
  * Since: 1.3.2
  **/
 const gchar *
-fwupd_release_get_name_variant_suffix (FwupdRelease *release)
+fwupd_release_get_name_variant_suffix (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 	return priv->name_variant_suffix;
 }
 
 /**
  * fwupd_release_set_name_variant_suffix:
- * @release: A #FwupdRelease
- * @name_variant_suffix: the description
+ * @self: a #FwupdRelease
+ * @name_variant_suffix: (nullable): the description
  *
  * Sets the update variant suffix.
  *
  * Since: 1.3.2
  **/
 void
-fwupd_release_set_name_variant_suffix (FwupdRelease *release, const gchar *name_variant_suffix)
+fwupd_release_set_name_variant_suffix (FwupdRelease *self, const gchar *name_variant_suffix)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* not changed */
 	if (g_strcmp0 (priv->name_variant_suffix, name_variant_suffix) == 0)
@@ -1260,7 +1260,7 @@ fwupd_release_set_name_variant_suffix (FwupdRelease *release, const gchar *name_
 
 /**
  * fwupd_release_get_trust_flags:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the trust level of the release.
  *
@@ -1269,16 +1269,16 @@ fwupd_release_set_name_variant_suffix (FwupdRelease *release, const gchar *name_
  * Since: 0.9.8
  **/
 FwupdTrustFlags
-fwupd_release_get_trust_flags (FwupdRelease *release)
+fwupd_release_get_trust_flags (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), 0);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), 0);
 	return priv->flags & FWUPD_RELEASE_TRUST_FLAGS_MASK;
 }
 
 /**
  * fwupd_release_set_trust_flags:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @trust_flags: the bitfield, e.g. #FWUPD_TRUST_FLAG_PAYLOAD
  *
  * Sets the trust level of the release.
@@ -1286,10 +1286,10 @@ fwupd_release_get_trust_flags (FwupdRelease *release)
  * Since: 0.9.8
  **/
 void
-fwupd_release_set_trust_flags (FwupdRelease *release, FwupdTrustFlags trust_flags)
+fwupd_release_set_trust_flags (FwupdRelease *self, FwupdTrustFlags trust_flags)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 
 	/* only overwrite the last two bits of the flags */
 	priv->flags &= ~FWUPD_RELEASE_TRUST_FLAGS_MASK;
@@ -1298,42 +1298,42 @@ fwupd_release_set_trust_flags (FwupdRelease *release, FwupdTrustFlags trust_flag
 
 /**
  * fwupd_release_get_flags:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the release flags.
  *
- * Returns: the release flags, or 0 if unset
+ * Returns: release flags, or 0 if unset
  *
  * Since: 1.2.6
  **/
 FwupdReleaseFlags
-fwupd_release_get_flags (FwupdRelease *release)
+fwupd_release_get_flags (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), 0);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), 0);
 	return priv->flags;
 }
 
 /**
  * fwupd_release_set_flags:
- * @release: A #FwupdRelease
- * @flags: the release flags, e.g. %FWUPD_RELEASE_FLAG_TRUSTED_PAYLOAD
+ * @self: a #FwupdRelease
+ * @flags: release flags, e.g. %FWUPD_RELEASE_FLAG_TRUSTED_PAYLOAD
  *
  * Sets the release flags.
  *
  * Since: 1.2.6
  **/
 void
-fwupd_release_set_flags (FwupdRelease *release, FwupdReleaseFlags flags)
+fwupd_release_set_flags (FwupdRelease *self, FwupdReleaseFlags flags)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->flags = flags;
 }
 
 /**
  * fwupd_release_add_flag:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @flag: the #FwupdReleaseFlags
  *
  * Adds a specific release flag to the release.
@@ -1341,16 +1341,16 @@ fwupd_release_set_flags (FwupdRelease *release, FwupdReleaseFlags flags)
  * Since: 1.2.6
  **/
 void
-fwupd_release_add_flag (FwupdRelease *release, FwupdReleaseFlags flag)
+fwupd_release_add_flag (FwupdRelease *self, FwupdReleaseFlags flag)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->flags |= flag;
 }
 
 /**
  * fwupd_release_remove_flag:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @flag: the #FwupdReleaseFlags
  *
  * Removes a specific release flag from the release.
@@ -1358,16 +1358,16 @@ fwupd_release_add_flag (FwupdRelease *release, FwupdReleaseFlags flag)
  * Since: 1.2.6
  **/
 void
-fwupd_release_remove_flag (FwupdRelease *release, FwupdReleaseFlags flag)
+fwupd_release_remove_flag (FwupdRelease *self, FwupdReleaseFlags flag)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->flags &= ~flag;
 }
 
 /**
  * fwupd_release_has_flag:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @flag: the #FwupdReleaseFlags
  *
  * Finds if the release has a specific release flag.
@@ -1377,16 +1377,16 @@ fwupd_release_remove_flag (FwupdRelease *release, FwupdReleaseFlags flag)
  * Since: 1.2.6
  **/
 gboolean
-fwupd_release_has_flag (FwupdRelease *release, FwupdReleaseFlags flag)
+fwupd_release_has_flag (FwupdRelease *self, FwupdReleaseFlags flag)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), FALSE);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), FALSE);
 	return (priv->flags & flag) > 0;
 }
 
 /**
  * fwupd_release_get_urgency:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the release urgency.
  *
@@ -1395,16 +1395,16 @@ fwupd_release_has_flag (FwupdRelease *release, FwupdReleaseFlags flag)
  * Since: 1.4.0
  **/
 FwupdReleaseUrgency
-fwupd_release_get_urgency (FwupdRelease *release)
+fwupd_release_get_urgency (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), 0);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), 0);
 	return priv->urgency;
 }
 
 /**
  * fwupd_release_set_urgency:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  * @urgency: the release urgency, e.g. %FWUPD_RELEASE_FLAG_TRUSTED_PAYLOAD
  *
  * Sets the release urgency.
@@ -1412,16 +1412,16 @@ fwupd_release_get_urgency (FwupdRelease *release)
  * Since: 1.4.0
  **/
 void
-fwupd_release_set_urgency (FwupdRelease *release, FwupdReleaseUrgency urgency)
+fwupd_release_set_urgency (FwupdRelease *self, FwupdReleaseUrgency urgency)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->urgency = urgency;
 }
 
 /**
  * fwupd_release_get_install_duration:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Gets the time estimate for firmware installation (in seconds)
  *
@@ -1430,47 +1430,47 @@ fwupd_release_set_urgency (FwupdRelease *release, FwupdReleaseUrgency urgency)
  * Since: 1.2.1
  **/
 guint32
-fwupd_release_get_install_duration (FwupdRelease *release)
+fwupd_release_get_install_duration (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), 0);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), 0);
 	return priv->install_duration;
 }
 
 /**
  * fwupd_release_set_install_duration:
- * @release: A #FwupdRelease
- * @duration: The amount of time
+ * @self: a #FwupdRelease
+ * @duration: amount of time in seconds
  *
  * Sets the time estimate for firmware installation (in seconds)
  *
  * Since: 1.2.1
  **/
 void
-fwupd_release_set_install_duration (FwupdRelease *release, guint32 duration)
+fwupd_release_set_install_duration (FwupdRelease *self, guint32 duration)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	priv->install_duration = duration;
 }
 
 /**
  * fwupd_release_to_variant:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
- * Creates a GVariant from the release data.
+ * Serialize the release data.
  *
- * Returns: the GVariant, or %NULL for error
+ * Returns: the serialized data, or %NULL for error
  *
  * Since: 1.0.0
  **/
 GVariant *
-fwupd_release_to_variant (FwupdRelease *release)
+fwupd_release_to_variant (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 	GVariantBuilder builder;
 
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 
 	/* create an array with all the metadata in */
 	g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
@@ -1631,132 +1631,132 @@ fwupd_release_to_variant (FwupdRelease *release)
 }
 
 static void
-fwupd_release_from_key_value (FwupdRelease *release, const gchar *key, GVariant *value)
+fwupd_release_from_key_value (FwupdRelease *self, const gchar *key, GVariant *value)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_REMOTE_ID) == 0) {
-		fwupd_release_set_remote_id (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_remote_id (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_APPSTREAM_ID) == 0) {
-		fwupd_release_set_appstream_id (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_appstream_id (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_DETACH_CAPTION) == 0) {
-		fwupd_release_set_detach_caption (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_detach_caption (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_DETACH_IMAGE) == 0) {
-		fwupd_release_set_detach_image (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_detach_image (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_FILENAME) == 0) {
-		fwupd_release_set_filename (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_filename (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_PROTOCOL) == 0) {
-		fwupd_release_set_protocol (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_protocol (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_LICENSE) == 0) {
-		fwupd_release_set_license (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_license (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_NAME) == 0) {
-		fwupd_release_set_name (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_name (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_NAME_VARIANT_SUFFIX) == 0) {
-		fwupd_release_set_name_variant_suffix (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_name_variant_suffix (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_SIZE) == 0) {
-		fwupd_release_set_size (release, g_variant_get_uint64 (value));
+		fwupd_release_set_size (self, g_variant_get_uint64 (value));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_CREATED) == 0) {
-		fwupd_release_set_created (release, g_variant_get_uint64 (value));
+		fwupd_release_set_created (self, g_variant_get_uint64 (value));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_SUMMARY) == 0) {
-		fwupd_release_set_summary (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_summary (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_BRANCH) == 0) {
-		fwupd_release_set_branch (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_branch (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_DESCRIPTION) == 0) {
-		fwupd_release_set_description (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_description (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_CATEGORIES) == 0) {
 		g_autofree const gchar **strv = g_variant_get_strv (value, NULL);
 		for (guint i = 0; strv[i] != NULL; i++)
-			fwupd_release_add_category (release, strv[i]);
+			fwupd_release_add_category (self, strv[i]);
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_ISSUES) == 0) {
 		g_autofree const gchar **strv = g_variant_get_strv (value, NULL);
 		for (guint i = 0; strv[i] != NULL; i++)
-			fwupd_release_add_issue (release, strv[i]);
+			fwupd_release_add_issue (self, strv[i]);
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_CHECKSUM) == 0) {
 		const gchar *checksums = g_variant_get_string (value, NULL);
 		g_auto(GStrv) split = g_strsplit (checksums, ",", -1);
 		for (guint i = 0; split[i] != NULL; i++)
-			fwupd_release_add_checksum (release, split[i]);
+			fwupd_release_add_checksum (self, split[i]);
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_LOCATIONS) == 0) {
 		g_autofree const gchar **strv = g_variant_get_strv (value, NULL);
 		for (guint i = 0; strv[i] != NULL; i++)
-			fwupd_release_add_location (release, strv[i]);
+			fwupd_release_add_location (self, strv[i]);
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_URI) == 0) {
-		fwupd_release_add_location (release, g_variant_get_string (value, NULL));
+		fwupd_release_add_location (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_HOMEPAGE) == 0) {
-		fwupd_release_set_homepage (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_homepage (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_DETAILS_URL) == 0) {
-		fwupd_release_set_details_url (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_details_url (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_SOURCE_URL) == 0) {
-		fwupd_release_set_source_url (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_source_url (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_VERSION) == 0) {
-		fwupd_release_set_version (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_version (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_VENDOR) == 0) {
-		fwupd_release_set_vendor (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_vendor (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_TRUST_FLAGS) == 0) {
-		fwupd_release_set_flags (release, g_variant_get_uint64 (value));
+		fwupd_release_set_flags (self, g_variant_get_uint64 (value));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_URGENCY) == 0) {
-		fwupd_release_set_urgency (release, g_variant_get_uint32 (value));
+		fwupd_release_set_urgency (self, g_variant_get_uint32 (value));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_INSTALL_DURATION) == 0) {
-		fwupd_release_set_install_duration (release, g_variant_get_uint32 (value));
+		fwupd_release_set_install_duration (self, g_variant_get_uint32 (value));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_UPDATE_MESSAGE) == 0) {
-		fwupd_release_set_update_message (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_update_message (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_UPDATE_IMAGE) == 0) {
-		fwupd_release_set_update_image (release, g_variant_get_string (value, NULL));
+		fwupd_release_set_update_image (self, g_variant_get_string (value, NULL));
 		return;
 	}
 	if (g_strcmp0 (key, FWUPD_RESULT_KEY_METADATA) == 0) {
@@ -1855,20 +1855,20 @@ fwupd_release_json_add_int (JsonBuilder *builder, const gchar *key, guint64 num)
 
 /**
  * fwupd_release_to_json:
- * @release: A #FwupdRelease
- * @builder: A #JsonBuilder
+ * @self: a #FwupdRelease
+ * @builder: a JSON builder
  *
  * Adds a fwupd release to a JSON builder
  *
  * Since: 1.2.6
  **/
 void
-fwupd_release_to_json (FwupdRelease *release, JsonBuilder *builder)
+fwupd_release_to_json (FwupdRelease *self, JsonBuilder *builder)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 	g_autoptr(GList) keys = NULL;
 
-	g_return_if_fail (FWUPD_IS_RELEASE (release));
+	g_return_if_fail (FWUPD_IS_RELEASE (self));
 	g_return_if_fail (builder != NULL);
 
 	fwupd_release_json_add_string (builder, FWUPD_RESULT_KEY_APPSTREAM_ID, priv->appstream_id);
@@ -1954,7 +1954,7 @@ fwupd_release_to_json (FwupdRelease *release, JsonBuilder *builder)
 
 /**
  * fwupd_release_to_string:
- * @release: A #FwupdRelease
+ * @self: a #FwupdRelease
  *
  * Builds a text representation of the object.
  *
@@ -1963,13 +1963,13 @@ fwupd_release_to_json (FwupdRelease *release, JsonBuilder *builder)
  * Since: 0.9.3
  **/
 gchar *
-fwupd_release_to_string (FwupdRelease *release)
+fwupd_release_to_string (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 	GString *str;
 	g_autoptr(GList) keys = NULL;
 
-	g_return_val_if_fail (FWUPD_IS_RELEASE (release), NULL);
+	g_return_val_if_fail (FWUPD_IS_RELEASE (self), NULL);
 
 	str = g_string_new ("");
 	fwupd_pad_kv_str (str, FWUPD_RESULT_KEY_APPSTREAM_ID, priv->appstream_id);
@@ -2035,9 +2035,9 @@ fwupd_release_class_init (FwupdReleaseClass *klass)
 }
 
 static void
-fwupd_release_init (FwupdRelease *release)
+fwupd_release_init (FwupdRelease *self)
 {
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 	priv->categories = g_ptr_array_new_with_free_func (g_free);
 	priv->issues = g_ptr_array_new_with_free_func (g_free);
 	priv->checksums = g_ptr_array_new_with_free_func (g_free);
@@ -2048,8 +2048,8 @@ fwupd_release_init (FwupdRelease *release)
 static void
 fwupd_release_finalize (GObject *object)
 {
-	FwupdRelease *release = FWUPD_RELEASE (object);
-	FwupdReleasePrivate *priv = GET_PRIVATE (release);
+	FwupdRelease *self = FWUPD_RELEASE (object);
+	FwupdReleasePrivate *priv = GET_PRIVATE (self);
 
 	g_free (priv->description);
 	g_free (priv->filename);
@@ -2080,21 +2080,21 @@ fwupd_release_finalize (GObject *object)
 }
 
 static void
-fwupd_release_set_from_variant_iter (FwupdRelease *release, GVariantIter *iter)
+fwupd_release_set_from_variant_iter (FwupdRelease *self, GVariantIter *iter)
 {
 	GVariant *value;
 	const gchar *key;
 	while (g_variant_iter_next (iter, "{&sv}", &key, &value)) {
-		fwupd_release_from_key_value (release, key, value);
+		fwupd_release_from_key_value (self, key, value);
 		g_variant_unref (value);
 	}
 }
 
 /**
  * fwupd_release_from_variant:
- * @value: a #GVariant
+ * @value: the serialized data
  *
- * Creates a new release using packed data.
+ * Creates a new release using serialized data.
  *
  * Returns: (transfer full): a new #FwupdRelease, or %NULL if @value was invalid
  *
@@ -2103,31 +2103,31 @@ fwupd_release_set_from_variant_iter (FwupdRelease *release, GVariantIter *iter)
 FwupdRelease *
 fwupd_release_from_variant (GVariant *value)
 {
-	FwupdRelease *rel = NULL;
+	FwupdRelease *self = NULL;
 	const gchar *type_string;
 	g_autoptr(GVariantIter) iter = NULL;
 
 	/* format from GetDetails */
 	type_string = g_variant_get_type_string (value);
 	if (g_strcmp0 (type_string, "(a{sv})") == 0) {
-		rel = fwupd_release_new ();
+		self = fwupd_release_new ();
 		g_variant_get (value, "(a{sv})", &iter);
-		fwupd_release_set_from_variant_iter (rel, iter);
+		fwupd_release_set_from_variant_iter (self, iter);
 	} else if (g_strcmp0 (type_string, "a{sv}") == 0) {
-		rel = fwupd_release_new ();
+		self = fwupd_release_new ();
 		g_variant_get (value, "a{sv}", &iter);
-		fwupd_release_set_from_variant_iter (rel, iter);
+		fwupd_release_set_from_variant_iter (self, iter);
 	} else {
 		g_warning ("type %s not known", type_string);
 	}
-	return rel;
+	return self;
 }
 
 /**
  * fwupd_release_array_from_variant:
- * @value: a #GVariant
+ * @value: the serialized data
  *
- * Creates an array of new releases using packed data.
+ * Creates an array of new releases using serialized data.
  *
  * Returns: (transfer container) (element-type FwupdRelease): releases, or %NULL if @value was invalid
  *
@@ -2144,13 +2144,13 @@ fwupd_release_array_from_variant (GVariant *value)
 	untuple = g_variant_get_child_value (value, 0);
 	sz = g_variant_n_children (untuple);
 	for (guint i = 0; i < sz; i++) {
-		FwupdRelease *rel;
+		FwupdRelease *self;
 		g_autoptr(GVariant) data = NULL;
 		data = g_variant_get_child_value (untuple, i);
-		rel = fwupd_release_from_variant (data);
-		if (rel == NULL)
+		self = fwupd_release_from_variant (data);
+		if (self == NULL)
 			continue;
-		g_ptr_array_add (array, rel);
+		g_ptr_array_add (array, self);
 	}
 	return array;
 }
@@ -2167,7 +2167,7 @@ fwupd_release_array_from_variant (GVariant *value)
 FwupdRelease *
 fwupd_release_new (void)
 {
-	FwupdRelease *release;
-	release = g_object_new (FWUPD_TYPE_RELEASE, NULL);
-	return FWUPD_RELEASE (release);
+	FwupdRelease *self;
+	self = g_object_new (FWUPD_TYPE_RELEASE, NULL);
+	return FWUPD_RELEASE (self);
 }

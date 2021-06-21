@@ -12,8 +12,17 @@
 #include <string.h>
 
 #include "fu-common.h"
+#include "fu-kenv.h"
 #include "fu-smbios-private.h"
 #include "fwupd-error.h"
+
+/**
+ * FuSmbios:
+ *
+ * Enumerate the SMBIOS data on the system, either using DMI or Device Tree.
+ *
+ * See also: [class@FuHwids]
+ */
 
 struct _FuSmbios {
 	FuFirmware		 parent_instance;
@@ -88,6 +97,103 @@ fu_smbios_convert_dt_string (FuSmbios *self, guint8 type, guint8 offset,
 	g_ptr_array_add (item->strings, g_strndup (buf, bufsz));
 	fu_smbios_convert_dt_value (self, type, offset, item->strings->len);
 }
+
+#ifdef HAVE_KENV_H
+static void
+fu_smbios_kenv_sysctl_string (FuSmbios *self, guint8 type, guint8 offset,
+			      const gchar *buf)
+{
+	FuSmbiosItem *item = g_ptr_array_index (self->items, type);
+
+	/* add to strtab */
+	g_ptr_array_add (item->strings, g_strdup (buf));
+	fu_smbios_convert_dt_value (self, type, offset, item->strings->len);
+}
+
+static gboolean
+fu_smbios_convert_kenv_string (FuSmbios *self, guint8 type, guint8 offset,
+			       const gchar *sminfo, GError **error)
+{
+	g_autofree gchar *value = fu_kenv_get_string (sminfo, error);
+	if (value == NULL)
+		return FALSE;
+	fu_smbios_kenv_sysctl_string (self, type, offset, value);
+	return TRUE;
+}
+
+static gboolean
+fu_smbios_setup_from_kenv (FuSmbios *self, GError **error)
+{
+	gboolean is_valid = FALSE;
+	g_autoptr(GError) error_local = NULL;
+
+	/* add all four faked structures */
+	for (guint i = 0; i < FU_SMBIOS_STRUCTURE_TYPE_LAST; i++) {
+		FuSmbiosItem *item = g_new0 (FuSmbiosItem, 1);
+		item->type = i;
+		item->buf = g_byte_array_new ();
+		item->strings = g_ptr_array_new_with_free_func (g_free);
+		g_ptr_array_add (self->items, item);
+	}
+
+	/* DMI:Manufacturer */
+	if (!fu_smbios_convert_kenv_string (self, FU_SMBIOS_STRUCTURE_TYPE_SYSTEM,
+					    0x04, "smbios.bios.vendor", &error_local)) {
+		g_debug ("ignoring: %s", error_local->message);
+		g_clear_error (&error_local);
+	} else {
+		is_valid = TRUE;
+	}
+
+	/* DMI:BiosVersion */
+	if (!fu_smbios_convert_kenv_string (self, FU_SMBIOS_STRUCTURE_TYPE_BIOS,
+					    0x05, "smbios.bios.version", &error_local)) {
+		g_debug ("ignoring: %s", error_local->message);
+		g_clear_error (&error_local);
+	} else {
+		is_valid = TRUE;
+	}
+
+	/* DMI:Family */
+	if (!fu_smbios_convert_kenv_string (self, FU_SMBIOS_STRUCTURE_TYPE_SYSTEM,
+					    0x1a, "smbios.system.family", &error_local)) {
+		g_debug ("ignoring: %s", error_local->message);
+		g_clear_error (&error_local);
+	} else {
+		is_valid = TRUE;
+	}
+
+	/* DMI:ProductName */
+	if (!fu_smbios_convert_kenv_string (self, FU_SMBIOS_STRUCTURE_TYPE_SYSTEM,
+					    0x05, "smbios.planar.product", &error_local)) {
+		g_debug ("ignoring: %s", error_local->message);
+		g_clear_error (&error_local);
+	} else {
+		is_valid = TRUE;
+	}
+
+	/* DMI:BaseboardManufacturer */
+	if (!fu_smbios_convert_kenv_string (self, FU_SMBIOS_STRUCTURE_TYPE_BASEBOARD,
+					    0x04, "smbios.planar.maker", &error_local)) {
+		g_debug ("ignoring: %s", error_local->message);
+		g_clear_error (&error_local);
+	} else {
+		is_valid = TRUE;
+	}
+
+	/* we got no data */
+	if (!is_valid) {
+		g_set_error (error,
+			     FWUPD_ERROR,
+			     FWUPD_ERROR_READ,
+			     "no SMBIOS information provided");
+		return FALSE;
+	}
+
+	/* success */
+	return TRUE;
+}
+#endif
 
 static gboolean
 fu_smbios_setup_from_path_dt (FuSmbios *self, const gchar *path, GError **error)
@@ -203,9 +309,9 @@ fu_smbios_setup_from_data (FuSmbios *self, const guint8 *buf, gsize sz, GError *
 
 /**
  * fu_smbios_setup_from_file:
- * @self: A #FuSmbios
- * @filename: A filename
- * @error: A #GError or %NULL
+ * @self: a #FuSmbios
+ * @filename: a filename
+ * @error: (nullable): optional return location for an error
  *
  * Reads all the SMBIOS values from a DMI blob.
  *
@@ -410,9 +516,9 @@ fu_smbios_parse (FuFirmware *firmware,
 
 /**
  * fu_smbios_setup_from_path:
- * @self: A #FuSmbios
- * @path: A path, e.g. `/sys/firmware/dmi/tables`
- * @error: A #GError or %NULL
+ * @self: a #FuSmbios
+ * @path: a path, e.g. `/sys/firmware/dmi/tables`
+ * @error: (nullable): optional return location for an error
  *
  * Reads all the SMBIOS values from a specific path.
  *
@@ -438,8 +544,8 @@ fu_smbios_setup_from_path (FuSmbios *self, const gchar *path, GError **error)
 
 /**
  * fu_smbios_setup:
- * @self: A #FuSmbios
- * @error: A #GError or %NULL
+ * @self: a #FuSmbios
+ * @error: (nullable): optional return location for an error
  *
  * Reads all the SMBIOS values from the hardware.
  *
@@ -468,6 +574,11 @@ fu_smbios_setup (FuSmbios *self, GError **error)
 	path_dt = g_build_filename (sysfsfwdir, "devicetree", "base", NULL);
 	if (g_file_test (path_dt, G_FILE_TEST_EXISTS))
 		return fu_smbios_setup_from_path (self, path_dt, error);
+
+#ifdef HAVE_KENV_H
+	/* kenv */
+	return fu_smbios_setup_from_kenv (self, error);
+#endif
 
 	/* neither found */
 	g_set_error_literal (error,
@@ -503,7 +614,7 @@ fu_smbios_export (FuFirmware *firmware,
 
 /**
  * fu_smbios_to_string:
- * @self: A #FuSmbios
+ * @self: a #FuSmbios
  *
  * Dumps the parsed SMBIOS data to a string.
  *
@@ -531,9 +642,9 @@ fu_smbios_get_item_for_type (FuSmbios *self, guint8 type)
 
 /**
  * fu_smbios_get_data:
- * @self: A #FuSmbios
- * @type: A structure type, e.g. %FU_SMBIOS_STRUCTURE_TYPE_BIOS
- * @error: A #GError or %NULL
+ * @self: a #FuSmbios
+ * @type: a structure type, e.g. %FU_SMBIOS_STRUCTURE_TYPE_BIOS
+ * @error: (nullable): optional return location for an error
  *
  * Reads a SMBIOS data blob, which includes the SMBIOS section header.
  *
@@ -562,10 +673,10 @@ fu_smbios_get_data (FuSmbios *self, guint8 type, GError **error)
 
 /**
  * fu_smbios_get_integer:
- * @self: A #FuSmbios
- * @type: A structure type, e.g. %FU_SMBIOS_STRUCTURE_TYPE_BIOS
- * @offset: A structure offset
- * @error: A #GError or %NULL
+ * @self: a #FuSmbios
+ * @type: a structure type, e.g. %FU_SMBIOS_STRUCTURE_TYPE_BIOS
+ * @offset: a structure offset
+ * @error: (nullable): optional return location for an error
  *
  * Reads an integer value from the SMBIOS string table of a specific structure.
  *
@@ -610,10 +721,10 @@ fu_smbios_get_integer (FuSmbios *self, guint8 type, guint8 offset, GError **erro
 
 /**
  * fu_smbios_get_string:
- * @self: A #FuSmbios
- * @type: A structure type, e.g. %FU_SMBIOS_STRUCTURE_TYPE_BIOS
- * @offset: A structure offset
- * @error: A #GError or %NULL
+ * @self: a #FuSmbios
+ * @type: a structure type, e.g. %FU_SMBIOS_STRUCTURE_TYPE_BIOS
+ * @offset: a structure offset
+ * @error: (nullable): optional return location for an error
  *
  * Reads a string from the SMBIOS string table of a specific structure.
  *

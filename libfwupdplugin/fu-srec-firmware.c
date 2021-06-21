@@ -15,12 +15,11 @@
 #include "fu-srec-firmware.h"
 
 /**
- * SECTION:fu-srec-firmware
- * @short_description: SREC firmware image
+ * FuSrecFirmware:
  *
- * An object that represents a SREC firmware image.
+ * A SREC firmware image.
  *
- * See also: #FuFirmware
+ * See also: [class@FuFirmware]
  */
 
 typedef struct {
@@ -62,7 +61,7 @@ fu_srec_firmware_record_free (FuSrecFirmwareRecord *rcd)
 /**
  * fu_srec_firmware_record_new: (skip):
  * @ln: unsigned integer
- * @kind: #FuFirmwareSrecRecordKind
+ * @kind: a record kind, e.g. #FU_FIRMWARE_SREC_RECORD_KIND_S3_DATA_32
  * @addr: unsigned integer
  *
  * Returns a single firmware record
@@ -80,6 +79,37 @@ fu_srec_firmware_record_new (guint ln, FuFirmareSrecRecordKind kind, guint32 add
 	rcd->addr = addr;
 	rcd->buf = g_byte_array_new ();
 	return rcd;
+}
+
+static FuSrecFirmwareRecord *
+fu_srec_firmware_record_dup (const FuSrecFirmwareRecord *rcd)
+{
+	FuSrecFirmwareRecord *dest;
+	g_return_val_if_fail (rcd != NULL, NULL);
+	dest = fu_srec_firmware_record_new (rcd->ln, rcd->kind, rcd->addr);
+	dest->buf = g_byte_array_ref (rcd->buf);
+	return dest;
+}
+
+/**
+ * fu_srec_firmware_record_get_type:
+ *
+ * Gets a specific type.
+ *
+ * Return value: a #GType
+ *
+ * Since: 1.6.1
+ **/
+GType
+fu_srec_firmware_record_get_type (void)
+{
+	static GType type_id = 0;
+	if (!type_id) {
+		type_id = g_boxed_type_register_static ("FuSrecFirmwareRecord",
+							(GBoxedCopyFunc) fu_srec_firmware_record_dup,
+							(GBoxedFreeFunc) fu_srec_firmware_record_free);
+	}
+	return type_id;
 }
 
 static gboolean
@@ -241,10 +271,11 @@ fu_srec_firmware_tokenize (FuFirmware *firmware, GBytes *fw,
 		default:
 			g_assert_not_reached ();
 		}
-
-		g_debug ("line %03u S%u addr:0x%04x datalen:0x%02x",
-			 ln + 1, rec_kind, rec_addr32,
-			 (guint) rec_count - addrsz - 1);
+		if (g_getenv ("FU_SREC_FIRMWARE_VERBOSE") != NULL) {
+			g_debug ("line %03u S%u addr:0x%04x datalen:0x%02x",
+				 ln + 1, rec_kind, rec_addr32,
+				 (guint) rec_count - addrsz - 1);
+		}
 
 		/* data */
 		rcd = fu_srec_firmware_record_new (ln + 1, rec_kind, rec_addr32);
@@ -531,7 +562,7 @@ fu_srec_firmware_class_init (FuSrecFirmwareClass *klass)
 /**
  * fu_srec_firmware_new:
  *
- * Creates a new #FuFirmware of sub type Srec
+ * Creates a new #FuFirmware of type SREC
  *
  * Since: 1.3.2
  **/

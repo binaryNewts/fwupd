@@ -7,10 +7,8 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
-
-#include "fu-chunk.h"
-#include "fu-firmware.h"
 
 #include "fu-vli-usbhub-common.h"
 #include "fu-vli-usbhub-device.h"
@@ -31,9 +29,13 @@ struct _FuVliUsbhubDevice
 G_DEFINE_TYPE (FuVliUsbhubDevice, fu_vli_usbhub_device, FU_TYPE_VLI_DEVICE)
 
 static void
-fu_vli_usbhub_device_to_string (FuVliDevice *device, guint idt, GString *str)
+fu_vli_usbhub_device_to_string (FuDevice *device, guint idt, GString *str)
 {
 	FuVliUsbhubDevice *self = FU_VLI_USBHUB_DEVICE (device);
+
+	/* parent */
+	FU_DEVICE_CLASS (fu_vli_usbhub_device_parent_class)->to_string (device, idt, str);
+
 	fu_common_string_append_kb (str, idt, "DisablePowersave", self->disable_powersave);
 	fu_common_string_append_kx (str, idt, "UpdateProtocol", self->update_protocol);
 	if (self->update_protocol >= 0x2) {
@@ -491,6 +493,10 @@ fu_vli_usbhub_device_probe (FuDevice *device, GError **error)
 {
 	guint16 usbver = fu_usb_device_get_spec (FU_USB_DEVICE (device));
 
+	/* FuUsbDevice->probe */
+	if (!FU_DEVICE_CLASS (fu_vli_usbhub_device_parent_class)->probe (device, error))
+		return FALSE;
+
 	/* quirks now applied... */
 	if (usbver > 0x0300 || fu_device_has_custom_flag (device, "usb3")) {
 		fu_device_set_summary (device, "USB 3.x Hub");
@@ -581,7 +587,7 @@ fu_vli_usbhub_device_rtd21xx_setup (FuVliUsbhubDevice *self, GError **error)
 }
 
 static gboolean
-fu_vli_usbhub_device_setup (FuVliDevice *device, GError **error)
+fu_vli_usbhub_device_ready (FuDevice *device, GError **error)
 {
 	FuVliUsbhubDevice *self = FU_VLI_USBHUB_DEVICE (device);
 	g_autoptr(GError) error_tmp = NULL;
@@ -999,8 +1005,8 @@ fu_vli_usbhub_device_class_init (FuVliUsbhubDeviceClass *klass)
 	klass_device->write_firmware = fu_vli_usbhub_device_write_firmware;
 	klass_device->prepare_firmware = fu_vli_usbhub_device_prepare_firmware;
 	klass_device->attach = fu_vli_usbhub_device_attach;
-	klass_vli_device->to_string = fu_vli_usbhub_device_to_string;
-	klass_vli_device->setup = fu_vli_usbhub_device_setup;
+	klass_device->to_string = fu_vli_usbhub_device_to_string;
+	klass_device->ready = fu_vli_usbhub_device_ready;
 	klass_vli_device->spi_chip_erase = fu_vli_usbhub_device_spi_chip_erase;
 	klass_vli_device->spi_sector_erase = fu_vli_usbhub_device_spi_sector_erase;
 	klass_vli_device->spi_read_data = fu_vli_usbhub_device_spi_read_data;

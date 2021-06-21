@@ -6,14 +6,10 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
 
-#include "fu-common.h"
-#include "fu-srec-firmware.h"
-#include "fu-firmware-common.h"
 #include "fu-wac-firmware.h"
-
-#include "fwupd-error.h"
 
 struct _FuWacFirmware {
 	FuFirmware		 parent_instance;
@@ -125,6 +121,14 @@ fu_wac_firmware_parse (FuFirmware *firmware,
 						     FWUPD_ERROR_INTERNAL,
 						     "headline %u exceeds header count %u",
 						     idx, header_infos->len);
+					return FALSE;
+				}
+				if (idx - 1 != images_cnt) {
+					g_set_error (error,
+						     FWUPD_ERROR,
+						     FWUPD_ERROR_INTERNAL,
+						     "headline %u is not in sorted order",
+						     idx);
 					return FALSE;
 				}
 				hdr = g_ptr_array_index (header_infos, idx - 1);

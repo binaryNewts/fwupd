@@ -22,6 +22,12 @@
 #include "fu-common.h"
 #include "fu-io-channel.h"
 
+/**
+ * FuIOChannel:
+ *
+ * A bidirectional IO channel which can be read from and written to.
+ */
+
 struct _FuIOChannel {
 	GObject			 parent_instance;
 	gint			 fd;
@@ -49,7 +55,7 @@ fu_io_channel_unix_get_fd (FuIOChannel *self)
 /**
  * fu_io_channel_shutdown:
  * @self: a #FuIOChannel
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Closes the file descriptor for the device.
  *
@@ -89,8 +95,8 @@ fu_io_channel_flush_input (FuIOChannel *self, GError **error)
  * @self: a #FuIOChannel
  * @bytes: buffer to write
  * @timeout_ms: timeout in ms
- * @flags: some #FuIOChannelFlags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
- * @error: a #GError, or %NULL
+ * @flags: channel flags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
+ * @error: (nullable): optional return location for an error
  *
  * Writes bytes to the TTY, that will fail if exceeding @timeout_ms.
  *
@@ -115,8 +121,8 @@ fu_io_channel_write_bytes (FuIOChannel *self,
  * @self: a #FuIOChannel
  * @buf: buffer to write
  * @timeout_ms: timeout in ms
- * @flags: some #FuIOChannelFlags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
- * @error: a #GError, or %NULL
+ * @flags: channel flags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
+ * @error: (nullable): optional return location for an error
  *
  * Writes bytes to the TTY, that will fail if exceeding @timeout_ms.
  *
@@ -140,8 +146,8 @@ fu_io_channel_write_byte_array (FuIOChannel *self,
  * @data: buffer to write
  * @datasz: size of @data
  * @timeout_ms: timeout in ms
- * @flags: some #FuIOChannelFlags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
- * @error: a #GError, or %NULL
+ * @flags: channel flags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
+ * @error: (nullable): optional return location for an error
  *
  * Writes bytes to the TTY, that will fail if exceeding @timeout_ms.
  *
@@ -237,8 +243,8 @@ fu_io_channel_write_raw (FuIOChannel *self,
  * @self: a #FuIOChannel
  * @max_size: maximum size of the returned blob, or -1 for no limit
  * @timeout_ms: timeout in ms
- * @flags: some #FuIOChannelFlags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
- * @error: a #GError, or %NULL
+ * @flags: channel flags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
+ * @error: (nullable): optional return location for an error
  *
  * Reads bytes from the TTY, that will fail if exceeding @timeout_ms.
  *
@@ -268,8 +274,8 @@ fu_io_channel_read_bytes (FuIOChannel *self,
  * @self: a #FuIOChannel
  * @max_size: maximum size of the returned blob, or -1 for no limit
  * @timeout_ms: timeout in ms
- * @flags: some #FuIOChannelFlags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
- * @error: a #GError, or %NULL
+ * @flags: channel flags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
+ * @error: (nullable): optional return location for an error
  *
  * Reads bytes from the TTY, that will fail if exceeding @timeout_ms.
  *
@@ -396,12 +402,12 @@ fu_io_channel_read_byte_array (FuIOChannel *self,
 /**
  * fu_io_channel_read_raw:
  * @self: a #FuIOChannel
- * @buf: buffer, or %NULL
+ * @buf: (nullable): optional buffer
  * @bufsz: size of @buf
- * @bytes_read: (out): data written to @buf, or %NULL
+ * @bytes_read: (out) (nullable): data written to @buf
  * @timeout_ms: timeout in ms
- * @flags: some #FuIOChannelFlags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
- * @error: a #GError, or %NULL
+ * @flags: channel flags, e.g. %FU_IO_CHANNEL_FLAG_SINGLE_SHOT
+ * @error: (nullable): optional return location for an error
  *
  * Reads bytes from the TTY, that will fail if exceeding @timeout_ms.
  *
@@ -479,7 +485,7 @@ fu_io_channel_unix_new (gint fd)
 /**
  * fu_io_channel_new_file:
  * @filename: device file
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Creates a new object to write and read from.
  *

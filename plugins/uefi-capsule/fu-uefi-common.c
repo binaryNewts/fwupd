@@ -8,13 +8,9 @@
 #include "config.h"
 
 #include <efivar.h>
+#include <fwupdplugin.h>
 
-#include "fu-common.h"
 #include "fu-uefi-common.h"
-#include "fu-efivar.h"
-
-#include "fwupd-common.h"
-#include "fwupd-error.h"
 
 static const gchar *
 fu_uefi_bootmgr_get_suffix (GError **error)
@@ -191,35 +187,6 @@ fu_uefi_get_bitmap_size (const guint8 *buf,
 			return FALSE;
 	}
 	return TRUE;
-}
-
-static gint
-fu_uefi_strcmp_sort_cb (gconstpointer a, gconstpointer b)
-{
-	const gchar *stra = *((const gchar **) a);
-	const gchar *strb = *((const gchar **) b);
-	return g_strcmp0 (stra, strb);
-}
-
-GPtrArray *
-fu_uefi_get_esrt_entry_paths (const gchar *esrt_path, GError **error)
-{
-	GPtrArray *entries = g_ptr_array_new_with_free_func (g_free);
-	const gchar *fn;
-	g_autofree gchar *esrt_entries = NULL;
-	g_autoptr(GDir) dir = NULL;
-
-	/* search ESRT */
-	esrt_entries = g_build_filename (esrt_path, "entries", NULL);
-	dir = g_dir_open (esrt_entries, 0, error);
-	if (dir == NULL)
-		return NULL;
-	while ((fn = g_dir_read_name (dir)) != NULL)
-		g_ptr_array_add (entries, g_build_filename (esrt_entries, fn, NULL));
-
-	/* sort by name */
-	g_ptr_array_sort (entries, fu_uefi_strcmp_sort_cb);
-	return entries;
 }
 
 gchar *

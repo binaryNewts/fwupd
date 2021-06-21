@@ -6,9 +6,9 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
 
-#include "fu-chunk.h"
 #include "fu-colorhug-common.h"
 #include "fu-colorhug-device.h"
 
@@ -58,6 +58,7 @@ fu_colorhug_device_msg (FuColorhugDevice *self, guint8 cmd,
 	GUsbDevice *usb_device = fu_usb_device_get_dev (FU_USB_DEVICE (self));
 	guint8 buf[] = { [0] = cmd, [1 ... CH_USB_HID_EP_SIZE - 1] = 0x00 };
 	gsize actual_length = 0;
+	g_autoptr(GError) error_local = NULL;
 
 	/* check size */
 	if (ibufsz > sizeof(buf) - 1) {
@@ -95,8 +96,17 @@ fu_colorhug_device_msg (FuColorhugDevice *self, guint8 cmd,
 					      &actual_length,
 					      CH_DEVICE_USB_TIMEOUT,
 					      NULL, /* cancellable */
-					      error)) {
-		g_prefix_error (error, "failed to send request: ");
+					      &error_local)) {
+		if (cmd == CH_CMD_RESET &&
+		    g_error_matches (error_local,
+				     G_USB_DEVICE_ERROR,
+				     G_USB_DEVICE_ERROR_NO_DEVICE)) {
+			g_debug ("ignoring '%s' on reset", error_local->message);
+			return TRUE;
+		}
+		g_propagate_prefixed_error (error,
+					    g_steal_pointer (&error_local),
+					    "failed to send request: ");
 		return FALSE;
 	}
 	if (actual_length != CH_USB_HID_EP_SIZE) {
@@ -116,8 +126,17 @@ fu_colorhug_device_msg (FuColorhugDevice *self, guint8 cmd,
 					      &actual_length,
 					      CH_DEVICE_USB_TIMEOUT,
 					      NULL, /* cancellable */
-					      error)) {
-		g_prefix_error (error, "failed to get reply: ");
+					      &error_local)) {
+		if (cmd == CH_CMD_RESET &&
+		    g_error_matches (error_local,
+				     G_USB_DEVICE_ERROR,
+				     G_USB_DEVICE_ERROR_NO_DEVICE)) {
+			g_debug ("ignoring '%s' on reset", error_local->message);
+			return TRUE;
+		}
+		g_propagate_prefixed_error (error,
+					    g_steal_pointer (&error_local),
+					    "failed to get reply: ");
 		return FALSE;
 	}
 	if (g_getenv ("FWUPD_COLORHUG_VERBOSE") != NULL)
@@ -338,6 +357,36 @@ static gboolean
 fu_colorhug_device_setup (FuDevice *device, GError **error)
 {
 	FuColorhugDevice *self = FU_COLORHUG_DEVICE (device);
+	GUsbDevice *usb_device = fu_usb_device_get_dev (FU_USB_DEVICE (device));
+	guint idx;
+
+	/* FuUsbDevice->setup */
+	if (!FU_DEVICE_CLASS (fu_colorhug_device_parent_class)->setup (device, error))
+		return FALSE;
+
+	/* get version number, falling back to the USB device release */
+	idx = g_usb_device_get_custom_index (usb_device,
+					     G_USB_DEVICE_CLASS_VENDOR_SPECIFIC,
+					     'F', 'W', NULL);
+	if (idx != 0x00) {
+		g_autofree gchar *tmp = NULL;
+		tmp = g_usb_device_get_string_descriptor (usb_device, idx, NULL);
+		/* although guessing is a route to insanity, if the device has
+		 * provided the extra data it's because the BCD type was not
+		 * suitable -- and INTEL_ME is not relevant here */
+		fu_device_set_version_format (device, fu_common_version_guess_format (tmp));
+		fu_device_set_version (device, tmp);
+	}
+
+	/* get GUID from the descriptor if set */
+	idx = g_usb_device_get_custom_index (usb_device,
+					     G_USB_DEVICE_CLASS_VENDOR_SPECIFIC,
+					     'G', 'U', NULL);
+	if (idx != 0x00) {
+		g_autofree gchar *tmp = NULL;
+		tmp = g_usb_device_get_string_descriptor (usb_device, idx, NULL);
+		fu_device_add_guid (device, tmp);
+	}
 
 	/* using the USB descriptor and old firmware */
 	if (fu_device_get_version_format (device) == FWUPD_VERSION_FORMAT_BCD) {

@@ -6,18 +6,18 @@
 
 #include "config.h"
 
-#include "fu-common.h"
+#include <fwupdplugin.h>
+
 #include "fu-ifd-common.h"
 #include "fu-ifd-firmware.h"
 #include "fu-ifd-bios.h"
 
 /**
- * SECTION:fu-ifd-firmware
- * @short_description: IFD firmware image
+ * FuIfdFirmware:
  *
- * An object that represents a Intel Flash Descriptor.
+ * An Intel Flash Descriptor.
  *
- * See also: #FuFirmware
+ * See also: [class@FuFirmware]
  */
 
 typedef struct {
@@ -246,7 +246,7 @@ fu_ifd_firmware_parse (FuFirmware *firmware,
  *
  * Checks a JEDEC command to see if it has been put on the "illegal_jedec" list.
  *
- * Return value: %TRUE if the command is allowed
+ * Returns: %TRUE if the command is allowed
  *
  * Since: 1.6.0
  **/

@@ -19,9 +19,9 @@
 #include "fwupd-error.h"
 
 /**
- * SECTION:fu-archive
- * @title: FuArchive
- * @short_description: an in-memory archive decompressor
+ * FuArchive:
+ *
+ * An in-memory archive decompressor
  */
 
 struct _FuArchive {
@@ -56,9 +56,9 @@ fu_archive_init (FuArchive *self)
 
 /**
  * fu_archive_lookup_by_fn:
- * @self: A #FuArchive
- * @fn: A filename
- * @error: A #GError, or %NULL
+ * @self: a #FuArchive
+ * @fn: a filename
+ * @error: (nullable): optional return location for an error
  *
  * Finds the blob referenced by filename
  *
@@ -87,10 +87,10 @@ fu_archive_lookup_by_fn (FuArchive *self, const gchar *fn, GError **error)
 
 /**
  * fu_archive_iterate:
- * @self: A #FuArchive
- * @callback: (scope call): A #FuArchiveIterateFunc.
- * @user_data: User data.
- * @error: A #GError, or %NULL
+ * @self: a #FuArchive
+ * @callback: (scope call): a #FuArchiveIterateFunc.
+ * @user_data: user data
+ * @error: (nullable): optional return location for an error
  *
  * Iterates over the archive contents, calling the given function for each
  * of the files found. If any @callback returns %FALSE scanning is aborted.
@@ -237,9 +237,9 @@ fu_archive_load (FuArchive *self, GBytes *blob, FuArchiveFlags flags, GError **e
 
 /**
  * fu_archive_new:
- * @data: A #GBytes
- * @flags: A #FuArchiveFlags, e.g. %FU_ARCHIVE_FLAG_NONE
- * @error: A #GError, or %NULL
+ * @data: archive contents
+ * @flags: archive flags, e.g. %FU_ARCHIVE_FLAG_NONE
+ * @error: (nullable): optional return location for an error
  *
  * Parses @data as an archive and decompresses all files to memory blobs.
  *

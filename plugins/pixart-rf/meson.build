@@ -9,7 +9,8 @@ shared_module('fu_plugin_pixart_rf',
   fu_hash,
   sources : [
     'fu-plugin-pixart-rf.c',
-    'fu-pxi-device.c',
+    'fu-pxi-common.c',
+    'fu-pxi-ble-device.c',
     'fu-pxi-firmware.c',      # fuzzing
   ],
   include_directories : [

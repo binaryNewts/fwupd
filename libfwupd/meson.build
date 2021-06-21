@@ -48,6 +48,7 @@ libfwupd_src = [
   'fwupd-release.c',        # fuzzing
   'fwupd-plugin.c',
   'fwupd-remote.c',
+  'fwupd-version.c',
 ]
 
 fwupd_mapfile = 'fwupd.map'
@@ -121,6 +122,8 @@ if get_option('introspection')
       'fwupd-remote.c',
       'fwupd-remote.h',
       'fwupd-remote-private.h',
+      'fwupd-version.c',
+      fwupd_version_h,
     ],
     nsversion : '2.0',
     namespace : 'Fwupd',
@@ -132,13 +135,14 @@ if get_option('introspection')
     includes : [
       'Gio-2.0',
       'GObject-2.0',
+      'Json-1.0',
     ],
     install : true
   )
 
   gnome.generate_vapi('fwupd',
     sources : fwupd_gir[0],
-    packages : ['gio-2.0'],
+    packages : ['gio-2.0', 'json-glib-1.0'],
     install : true,
   )
 

@@ -394,48 +394,93 @@ fu_util_update_reboot (GError **error)
 }
 
 gboolean
-fu_util_prompt_warning (FwupdDevice *device, const gchar *machine, GError **error)
+fu_util_prompt_warning (FwupdDevice *device,
+			FwupdRelease *release,
+			const gchar *machine,
+			GError **error)
 {
 	FwupdDeviceFlags flags;
-	g_autofree gchar *str = NULL;
+	const gchar *desc_tmp;
+	gint vercmp;
+	g_autoptr(GString) title = g_string_new (NULL);
+	g_autoptr(GString) str = g_string_new (NULL);
 
-	/* device is already in bootloader mode */
+	/* up, down, or re-install */
+	vercmp = fu_common_vercmp_full (fwupd_release_get_version (release),
+				        fu_device_get_version (device),
+				        fwupd_device_get_version_format (device));
+	if (vercmp < 0) {
+		/* TRANSLATORS: message letting the user know an downgrade is available
+		 * %1 is the device name and %2 and %3 are version strings */
+		g_string_append_printf (title, _("Downgrade %s from %s to %s?"),
+					fwupd_device_get_name (device),
+					fwupd_device_get_version (device),
+					fwupd_release_get_version (release));
+	} else if (vercmp > 0) {
+		/* TRANSLATORS: message letting the user know an upgrade is available
+		 * %1 is the device name and %2 and %3 are version strings */
+		g_string_append_printf (title, _("Upgrade %s from %s to %s?"),
+					fwupd_device_get_name (device),
+					fwupd_device_get_version (device),
+					fwupd_release_get_version (release));
+	} else {
+		/* TRANSLATORS: message letting the user know an upgrade is available
+		 * %1 is the device name and %2 is a version string */
+		g_string_append_printf (title, _("Reinstall %s to %s?"),
+					fwupd_device_get_name (device),
+					fwupd_release_get_version (release));
+	}
+
+	/* description is optional */
+	desc_tmp = fwupd_release_get_description (release);
+	if (desc_tmp != NULL) {
+		g_autofree gchar *desc = fu_util_convert_description (desc_tmp, NULL);
+		if (desc != NULL)
+			g_string_append_printf (str, "\n%s", desc);
+	}
+
+	/* device is not already in bootloader mode so show warning */
 	flags = fwupd_device_get_flags (device);
-	if (flags & FWUPD_DEVICE_FLAG_IS_BOOTLOADER)
-		return TRUE;
+	if ((flags & FWUPD_DEVICE_FLAG_IS_BOOTLOADER) == 0) {
 
-	/* device may reboot */
-	if ((flags & FWUPD_DEVICE_FLAG_USABLE_DURING_UPDATE) == 0) {
-		/* TRANSLATORS: warn the user before updating, %1 is a device name */
-		str = g_strdup_printf (_("%s and all connected devices may not be usable while updating."),
-					fwupd_device_get_name (device));
-	/* device can get bricked */
-	} else if ((flags & FWUPD_DEVICE_FLAG_SELF_RECOVERY) == 0) {
-		/* external device */
-		if ((flags & FWUPD_DEVICE_FLAG_INTERNAL) == 0) {
+		/* device may reboot */
+		if ((flags & FWUPD_DEVICE_FLAG_USABLE_DURING_UPDATE) == 0) {
+			g_string_append (str, "\n\n");
 			/* TRANSLATORS: warn the user before updating, %1 is a device name */
-			str = g_strdup_printf (_("%s must remain connected for the duration of the update to avoid damage."),
-						fwupd_device_get_name (device));
-		} else if (flags & FWUPD_DEVICE_FLAG_REQUIRE_AC) {
-			/* TRANSLATORS: warn the user before updating, %1 is a machine name */
-			str = g_strdup_printf (_("%s must remain plugged into a power source for the duration of the update to avoid damage."),
-						machine);
+			g_string_append_printf (str, _("%s and all connected devices may not be usable while updating."),
+						  fwupd_device_get_name (device));
+
+		/* device can get bricked */
+		} else if ((flags & FWUPD_DEVICE_FLAG_SELF_RECOVERY) == 0) {
+			g_string_append (str, "\n\n");
+			/* external device */
+			if ((flags & FWUPD_DEVICE_FLAG_INTERNAL) == 0) {
+				/* TRANSLATORS: warn the user before updating, %1 is a device name */
+				g_string_append_printf (str, _("%s must remain connected for the duration of the update to avoid damage."),
+							fwupd_device_get_name (device));
+			} else if (flags & FWUPD_DEVICE_FLAG_REQUIRE_AC) {
+				/* TRANSLATORS: warn the user before updating, %1 is a machine name */
+				g_string_append_printf (str, _("%s must remain plugged into a power source for the duration of the update to avoid damage."),
+							machine);
+			}
 		}
 	}
-	if (str != NULL) {
-		g_print ("%s %s [Y|n]: ",
-			str,
-			/* TRANSLATORS: prompt to apply the update */
-			_("Continue with update?"));
-		if (!fu_util_prompt_for_boolean (TRUE)) {
-			g_set_error_literal (error,
-					     FWUPD_ERROR,
-					     FWUPD_ERROR_NOTHING_TO_DO,
-					     "Request canceled");
-			return FALSE;
-		}
+	fu_util_warning_box (title->str, str->str, 80);
+
+	/* ask for confirmation */
+	g_print ("\n%s [Y|n]: ",
+		/* TRANSLATORS: prompt to apply the update */
+		_("Perform operation?"));
+	if (!fu_util_prompt_for_boolean (TRUE)) {
+		g_set_error_literal (error,
+				     FWUPD_ERROR,
+				     FWUPD_ERROR_NOTHING_TO_DO,
+				     "Request canceled");
+		return FALSE;
 	}
 
+
+	/* success */
 	return TRUE;
 }
 
@@ -969,7 +1014,7 @@ fu_util_convert_description (const gchar *xml, GError **error)
  *
  * Converts a timestamp to a 'pretty' translated string
  *
- * Return value: (transfer full): A string
+ * Returns: (transfer full): A string
  *
  * Since: 1.3.7
  **/
@@ -1076,7 +1121,7 @@ fu_util_device_flag_to_string (guint64 device_flag)
 		return _("Is in bootloader mode");
 	}
 	if (device_flag == FWUPD_DEVICE_FLAG_WAIT_FOR_REPLUG) {
-		/* TRANSLATORS: The hardware is waiting to be replugged */
+		/* TRANSLATORS: the hardware is waiting to be replugged */
 		return _("Hardware is waiting to be replugged");
 	}
 	if (device_flag == FWUPD_DEVICE_FLAG_IGNORE_VALIDATION) {
@@ -1149,23 +1194,23 @@ static const gchar *
 fu_util_update_state_to_string (FwupdUpdateState update_state)
 {
 	if (update_state == FWUPD_UPDATE_STATE_PENDING) {
-		/* TRANSLATORS: The update state of the specific device */
+		/* TRANSLATORS: the update state of the specific device */
 		return _("Pending");
 	}
 	if (update_state == FWUPD_UPDATE_STATE_SUCCESS) {
-		/* TRANSLATORS: The update state of the specific device */
+		/* TRANSLATORS: the update state of the specific device */
 		return _("Success");
 	}
 	if (update_state == FWUPD_UPDATE_STATE_FAILED) {
-		/* TRANSLATORS: The update state of the specific device */
+		/* TRANSLATORS: the update state of the specific device */
 		return _("Failed");
 	}
 	if (update_state == FWUPD_UPDATE_STATE_FAILED_TRANSIENT) {
-		/* TRANSLATORS: The update state of the specific device */
+		/* TRANSLATORS: the update state of the specific device */
 		return _("Transient failure");
 	}
 	if (update_state == FWUPD_UPDATE_STATE_NEEDS_REBOOT) {
-		/* TRANSLATORS: The update state of the specific device */
+		/* TRANSLATORS: the update state of the specific device */
 		return _("Needs reboot");
 	}
 	return NULL;
@@ -1725,6 +1770,11 @@ fu_util_remote_to_string (FwupdRemote *remote, guint idt)
 	if (tmp != NULL) {
 		/* TRANSLATORS: filename of the local file */
 		fu_common_string_append_kv (str, idt + 1, _("Filename Signature"), tmp);
+	}
+	tmp = fwupd_remote_get_filename_source (remote);
+	if (tmp != NULL) {
+		/* TRANSLATORS: full path of the remote.conf file */
+		fu_common_string_append_kv (str, idt + 1, _("Filename Source"), tmp);
 	}
 	tmp = fwupd_remote_get_metadata_uri (remote);
 	if (tmp != NULL) {

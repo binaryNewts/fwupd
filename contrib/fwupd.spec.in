@@ -15,7 +15,7 @@
 %global enable_ci 0
 %global enable_tests 1
 %global enable_dummy 1
-%global __meson_wrap_mode default
+%global __meson_wrap_mode nodownload
 
 # fwupd.efi is only available on these arches
 %ifarch x86_64 aarch64
@@ -223,7 +223,7 @@ fwupd wrapper for Qubes OS
 %if 0%{?enable_ci}
     --werror \
 %endif
-    -Dgtkdoc=true \
+    -Ddocs=gtkdoc \
 %if 0%{?enable_tests}
     -Dtests=true \
 %else
@@ -309,17 +309,16 @@ done
 
 %postun
 %systemd_postun_with_restart fwupd.service
-%systemd_postun_with_restart pesign.service
 
 %files -f %{name}.lang
 %doc README.md AUTHORS
 %license COPYING
 %config(noreplace)%{_sysconfdir}/fwupd/daemon.conf
-%config(noreplace)%{_sysconfdir}/fwupd/upower.conf
 %if 0%{?have_uefi}
 %config(noreplace)%{_sysconfdir}/fwupd/uefi_capsule.conf
 %endif
 %config(noreplace)%{_sysconfdir}/fwupd/redfish.conf
+%config(noreplace)%{_sysconfdir}/fwupd/synaptics_mst.conf
 %config(noreplace)%{_sysconfdir}/fwupd/thunderbolt.conf
 %dir %{_libexecdir}/fwupd
 %{_libexecdir}/fwupd/fwupd
@@ -402,6 +401,7 @@ done
 %dir %{_libdir}/fwupd-plugins-3
 %{_libdir}/fwupd-plugins-3/libfu_plugin_acpi_dmar.so
 %{_libdir}/fwupd-plugins-3/libfu_plugin_acpi_facp.so
+%{_libdir}/fwupd-plugins-3/libfu_plugin_acpi_phat.so
 %{_libdir}/fwupd-plugins-3/libfu_plugin_altos.so
 %{_libdir}/fwupd-plugins-3/libfu_plugin_amt.so
 %{_libdir}/fwupd-plugins-3/libfu_plugin_analogix.so

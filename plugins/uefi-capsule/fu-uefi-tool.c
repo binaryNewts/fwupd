@@ -6,18 +6,19 @@
 
 #include "config.h"
 
-#include <fwupd.h>
+#include <fwupdplugin.h>
 #include <glib/gi18n.h>
 #include <glib-unix.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "fu-context-private.h"
 #include "fu-ucs2.h"
+#include "fu-uefi-backend.h"
 #include "fu-uefi-common.h"
 #include "fu-uefi-device.h"
 #include "fu-uefi-update-info.h"
-#include "fu-efivar.h"
 
 /* custom return code */
 #define EXIT_NOTHING_TO_DO		2
@@ -201,33 +202,21 @@ main (int argc, char *argv[])
 	}
 
 	if (action_list || action_supported || action_info) {
-		g_autoptr(GPtrArray) entries = NULL;
-		g_autofree gchar *esrt_path = NULL;
-		g_autofree gchar *sysfsfwdir = NULL;
+		g_autoptr(FuContext) ctx = fu_context_new ();
+		g_autoptr(FuBackend) backend = fu_uefi_backend_new (ctx);
 		g_autoptr(GError) error_local = NULL;
 
-		/* get the directory of ESRT entries */
-		sysfsfwdir = fu_common_get_path (FU_PATH_KIND_SYSFSDIR_FW);
-		esrt_path = g_build_filename (sysfsfwdir, "efi", "esrt", NULL);
-		entries = fu_uefi_get_esrt_entry_paths (esrt_path, &error_local);
-		if (entries == NULL) {
+		/* add each device */
+		if (fu_backend_coldplug (backend, &error_local)) {
 			g_printerr ("failed: %s\n", error_local->message);
 			return EXIT_FAILURE;
 		}
 
-		/* add each device */
-		devices = g_ptr_array_new_with_free_func ((GDestroyNotify) g_object_unref);
-		for (guint i = 0; i < entries->len; i++) {
-			const gchar *path = g_ptr_array_index (entries, i);
-			g_autoptr(GError) error_parse = NULL;
-			g_autoptr(FuUefiDevice) dev = fu_uefi_device_new_from_entry (path, &error_parse);
-			if (dev == NULL) {
-				g_warning ("failed to parse %s: %s",
-					   path, error_parse->message);
-				continue;
-			}
+		/* set ESP */
+		devices = fu_backend_get_devices (backend);
+		for (guint i = 0; i < devices->len; i++) {
+			FuUefiDevice *dev = g_ptr_array_index (devices, i);
 			fu_uefi_device_set_esp (dev, esp);
-			g_ptr_array_add (devices, g_object_ref (dev));
 		}
 	}
 

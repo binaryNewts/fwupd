@@ -20,12 +20,11 @@
 #include "fu-mutex.h"
 
 /**
- * SECTION:fu-plugin
- * @short_description: a daemon plugin
+ * FuPlugin:
  *
- * An object that represents a plugin run by the daemon.
+ * A plugin which is used by fwupd to enumerate and update devices.
  *
- * See also: #FuDevice
+ * See also: [class@FuDevice], [class@Fwupd.Plugin]
  */
 
 static void fu_plugin_finalize			 (GObject *object);
@@ -91,7 +90,7 @@ typedef void		 (*FuPluginSecurityAttrsFunc)	(FuPlugin	*self,
 
 /**
  * fu_plugin_is_open:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  *
  * Determines if the plugin is opened
  *
@@ -108,7 +107,7 @@ fu_plugin_is_open (FuPlugin *self)
 
 /**
  * fu_plugin_get_name:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  *
  * Gets the plugin name.
  *
@@ -125,8 +124,8 @@ fu_plugin_get_name (FuPlugin *self)
 
 /**
  * fu_plugin_set_name:
- * @self: A #FuPlugin
- * @name: A string
+ * @self: a #FuPlugin
+ * @name: a string
  *
  * Sets the plugin name.
  *
@@ -141,8 +140,8 @@ fu_plugin_set_name (FuPlugin *self, const gchar *name)
 
 /**
  * fu_plugin_set_build_hash:
- * @self: A #FuPlugin
- * @build_hash: A checksum
+ * @self: a #FuPlugin
+ * @build_hash: a checksum
  *
  * Sets the plugin build hash, typically a SHA256 checksum. All plugins must
  * set the correct checksum to avoid the daemon being marked as tainted.
@@ -166,7 +165,7 @@ fu_plugin_set_build_hash (FuPlugin *self, const gchar *build_hash)
 
 /**
  * fu_plugin_get_build_hash:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  *
  * Gets the build hash a plugin was generated with.
  *
@@ -184,7 +183,7 @@ fu_plugin_get_build_hash (FuPlugin *self)
 
 /**
  * fu_plugin_cache_lookup:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  * @id: the key
  *
  * Finds an object in the per-plugin cache.
@@ -208,7 +207,7 @@ fu_plugin_cache_lookup (FuPlugin *self, const gchar *id)
 
 /**
  * fu_plugin_cache_add:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  * @id: the key
  * @dev: a #GObject, typically a #FuDevice
  *
@@ -236,7 +235,7 @@ fu_plugin_cache_add (FuPlugin *self, const gchar *id, gpointer dev)
 
 /**
  * fu_plugin_cache_remove:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  * @id: the key
  *
  * Removes an object from the per-plugin cache.
@@ -258,7 +257,7 @@ fu_plugin_cache_remove (FuPlugin *self, const gchar *id)
 
 /**
  * fu_plugin_get_data:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  *
  * Gets the per-plugin allocated private data. This will return %NULL unless
  * fu_plugin_alloc_data() has been called by the plugin.
@@ -277,7 +276,7 @@ fu_plugin_get_data (FuPlugin *self)
 
 /**
  * fu_plugin_alloc_data: (skip):
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  * @data_sz: the size to allocate
  *
  * Allocates the per-plugin allocated private data.
@@ -324,9 +323,9 @@ fu_plugin_guess_name_from_fn (const gchar *filename)
 
 /**
  * fu_plugin_open:
- * @self: A #FuPlugin
- * @filename: The shared object filename to open
- * @error: A #GError or NULL
+ * @self: a #FuPlugin
+ * @filename: the shared object filename to open
+ * @error: (nullable): optional return location for an error
  *
  * Opens the plugin module
  *
@@ -404,8 +403,8 @@ fu_plugin_ensure_devices (FuPlugin *self)
 
 /**
  * fu_plugin_device_add:
- * @self: A #FuPlugin
- * @device: A #FuDevice
+ * @self: a #FuPlugin
+ * @device: a device
  *
  * Asks the daemon to add a device to the exported list. If this device ID
  * has already been added by a different plugin then this request will be
@@ -470,7 +469,7 @@ fu_plugin_device_add (FuPlugin *self, FuDevice *device)
 
 /**
  * fu_plugin_get_devices:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  *
  * Returns all devices added by the plugin using fu_plugin_device_add() and
  * not yet removed with fu_plugin_device_remove().
@@ -490,8 +489,8 @@ fu_plugin_get_devices (FuPlugin *self)
 
 /**
  * fu_plugin_device_register:
- * @self: A #FuPlugin
- * @device: A #FuDevice
+ * @self: a #FuPlugin
+ * @device: a device
  *
  * Registers the device with other plugins so they can set metadata.
  *
@@ -524,8 +523,8 @@ fu_plugin_device_register (FuPlugin *self, FuDevice *device)
 
 /**
  * fu_plugin_device_remove:
- * @self: A #FuPlugin
- * @device: A #FuDevice
+ * @self: a #FuPlugin
+ * @device: a device
  *
  * Asks the daemon to remove a device from the exported list.
  *
@@ -551,8 +550,8 @@ fu_plugin_device_remove (FuPlugin *self, FuDevice *device)
 
 /**
  * fu_plugin_has_custom_flag:
- * @self: A #FuPlugin
- * @flag: A custom text flag, specific to the plugin, e.g. `uefi-force-enable`
+ * @self: a #FuPlugin
+ * @flag: a custom text flag, specific to the plugin, e.g. `uefi-force-enable`
  *
  * Returns if a per-plugin HwId custom flag exists, typically added from a DMI quirk.
  *
@@ -592,8 +591,8 @@ fu_plugin_has_custom_flag (FuPlugin *self, const gchar *flag)
 
 /**
  * fu_plugin_check_supported:
- * @self: A #FuPlugin
- * @guid: A Hardware ID GUID, e.g. `6de5d951-d755-576b-bd09-c5cf66b27234`
+ * @self: a #FuPlugin
+ * @guid: a hardware ID GUID, e.g. `6de5d951-d755-576b-bd09-c5cf66b27234`
  *
  * Checks to see if a specific device GUID is supported, i.e. available in the
  * AppStream metadata.
@@ -612,7 +611,7 @@ fu_plugin_check_supported (FuPlugin *self, const gchar *guid)
 
 /**
  * fu_plugin_get_context:
- * @self: A #FuPlugin
+ * @self: a #FuPlugin
  *
  * Gets the context for a plugin.
  *
@@ -737,7 +736,7 @@ fu_plugin_device_read_firmware (FuPlugin *self, FuDevice *device, GError **error
 /**
  * fu_plugin_runner_startup:
  * @self: a #FuPlugin
- * @error: a #GError or NULL
+ * @error: (nullable): optional return location for an error
  *
  * Runs the startup routine for the plugin
  *
@@ -909,7 +908,7 @@ fu_plugin_runner_device_array_generic (FuPlugin *self, GPtrArray *devices,
 /**
  * fu_plugin_runner_coldplug:
  * @self: a #FuPlugin
- * @error: a #GError or NULL
+ * @error: (nullable): optional return location for an error
  *
  * Runs the coldplug routine for the plugin
  *
@@ -960,7 +959,7 @@ fu_plugin_runner_coldplug (FuPlugin *self, GError **error)
 /**
  * fu_plugin_runner_coldplug_prepare:
  * @self: a #FuPlugin
- * @error: a #GError or NULL
+ * @error: (nullable): optional return location for an error
  *
  * Runs the coldplug_prepare routine for the plugin
  *
@@ -1008,7 +1007,7 @@ fu_plugin_runner_coldplug_prepare (FuPlugin *self, GError **error)
 /**
  * fu_plugin_runner_coldplug_cleanup:
  * @self: a #FuPlugin
- * @error: a #GError or NULL
+ * @error: (nullable): optional return location for an error
  *
  * Runs the coldplug_cleanup routine for the plugin
  *
@@ -1056,8 +1055,8 @@ fu_plugin_runner_coldplug_cleanup (FuPlugin *self, GError **error)
 /**
  * fu_plugin_runner_composite_prepare:
  * @self: a #FuPlugin
- * @devices: (element-type FuDevice): a #GPtrArray of devices
- * @error: a #GError or NULL
+ * @devices: (element-type FuDevice): an array of devices
+ * @error: (nullable): optional return location for an error
  *
  * Runs the composite_prepare routine for the plugin
  *
@@ -1076,8 +1075,8 @@ fu_plugin_runner_composite_prepare (FuPlugin *self, GPtrArray *devices, GError *
 /**
  * fu_plugin_runner_composite_cleanup:
  * @self: a #FuPlugin
- * @devices: (element-type FuDevice): a #GPtrArray of devices
- * @error: a #GError or NULL
+ * @devices: (element-type FuDevice): an array of devices
+ * @error: (nullable): optional return location for an error
  *
  * Runs the composite_cleanup routine for the plugin
  *
@@ -1096,9 +1095,9 @@ fu_plugin_runner_composite_cleanup (FuPlugin *self, GPtrArray *devices, GError *
 /**
  * fu_plugin_runner_update_prepare:
  * @self: a #FuPlugin
- * @flags: #FwupdInstallFlags
- * @device: a #FuDevice
- * @error: a #GError or NULL
+ * @flags: install flags
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Runs the update_prepare routine for the plugin
  *
@@ -1118,9 +1117,9 @@ fu_plugin_runner_update_prepare (FuPlugin *self, FwupdInstallFlags flags, FuDevi
 /**
  * fu_plugin_runner_update_cleanup:
  * @self: a #FuPlugin
- * @flags: #FwupdInstallFlags
- * @device: a #FuDevice
- * @error: a #GError or NULL
+ * @flags: install flags
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Runs the update_cleanup routine for the plugin
  *
@@ -1140,8 +1139,8 @@ fu_plugin_runner_update_cleanup (FuPlugin *self, FwupdInstallFlags flags, FuDevi
 /**
  * fu_plugin_runner_update_attach:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: a #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Runs the update_attach routine for the plugin
  *
@@ -1161,8 +1160,8 @@ fu_plugin_runner_update_attach (FuPlugin *self, FuDevice *device, GError **error
 /**
  * fu_plugin_runner_update_detach:
  * @self: a #FuPlugin
- * @device: A #FuDevice
- * @error: a #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Runs the update_detach routine for the plugin
  *
@@ -1182,8 +1181,8 @@ fu_plugin_runner_update_detach (FuPlugin *self, FuDevice *device, GError **error
 /**
  * fu_plugin_runner_update_reload:
  * @self: a #FuPlugin
- * @device: A #FuDevice
- * @error: a #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Runs reload routine for a device
  *
@@ -1210,7 +1209,7 @@ fu_plugin_runner_update_reload (FuPlugin *self, FuDevice *device, GError **error
 /**
  * fu_plugin_runner_add_security_attrs:
  * @self: a #FuPlugin
- * @attrs: a #FuSecurityAttrs
+ * @attrs: a security attribute
  *
  * Runs the `add_security_attrs()` routine for the plugin
  *
@@ -1238,7 +1237,7 @@ fu_plugin_runner_add_security_attrs (FuPlugin *self, FuSecurityAttrs *attrs)
 /**
  * fu_plugin_add_device_gtype:
  * @self: a #FuPlugin
- * @device_gtype: a #GType `FU_TYPE_DEVICE`
+ * @device_gtype: a #GType, e.g. `FU_TYPE_DEVICE`
  *
  * Adds the device #GType which is used when creating devices.
  *
@@ -1283,7 +1282,7 @@ fu_common_string_uncamelcase (const gchar *str)
 /**
  * fu_plugin_add_firmware_gtype:
  * @self: a #FuPlugin
- * @id: (nullable): An optional string describing the type, e.g. "ihex"
+ * @id: (nullable): an optional string describing the type, e.g. `ihex`
  * @gtype: a #GType e.g. `FU_TYPE_FOO_FIRMWARE`
  *
  * Adds a firmware #GType which is used when creating devices. If @id is not
@@ -1374,8 +1373,8 @@ fu_plugin_backend_device_added (FuPlugin *self, FuDevice *device, GError **error
 /**
  * fu_plugin_runner_backend_device_added:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: a #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call the backend_device_added routine for the plugin
  *
@@ -1436,8 +1435,8 @@ fu_plugin_runner_backend_device_added (FuPlugin *self, FuDevice *device, GError 
 /**
  * fu_plugin_runner_backend_device_changed:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: a #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call the backend_device_changed routine for the plugin
  *
@@ -1489,7 +1488,7 @@ fu_plugin_runner_backend_device_changed (FuPlugin *self, FuDevice *device, GErro
 /**
  * fu_plugin_runner_device_added:
  * @self: a #FuPlugin
- * @device: a #FuDevice
+ * @device: a device
  *
  * Call the device_added routine for the plugin
  *
@@ -1518,7 +1517,7 @@ fu_plugin_runner_device_added (FuPlugin *self, FuDevice *device)
 /**
  * fu_plugin_runner_device_removed:
  * @self: a #FuPlugin
- * @device: a #FuDevice
+ * @device: a device
  *
  * Call the device_removed routine for the plugin
  *
@@ -1539,7 +1538,7 @@ fu_plugin_runner_device_removed (FuPlugin *self, FuDevice *device)
 /**
  * fu_plugin_runner_device_register:
  * @self: a #FuPlugin
- * @device: a #FuDevice
+ * @device: a device
  *
  * Call the device_registered routine for the plugin
  *
@@ -1568,8 +1567,8 @@ fu_plugin_runner_device_register (FuPlugin *self, FuDevice *device)
 /**
  * fu_plugin_runner_device_created:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: a #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call the device_created routine for the plugin
  *
@@ -1604,9 +1603,9 @@ fu_plugin_runner_device_created (FuPlugin *self, FuDevice *device, GError **erro
 /**
  * fu_plugin_runner_verify:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @flags: #FuPluginVerifyFlags
- * @error: A #GError or NULL
+ * @device: a device
+ * @flags: verify flags
+ * @error: (nullable): optional return location for an error
  *
  * Call into the plugin's verify routine
  *
@@ -1702,8 +1701,8 @@ fu_plugin_runner_verify (FuPlugin *self,
 /**
  * fu_plugin_runner_activate:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: A #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call into the plugin's activate routine
  *
@@ -1747,8 +1746,8 @@ fu_plugin_runner_activate (FuPlugin *self, FuDevice *device, GError **error)
 /**
  * fu_plugin_runner_unlock:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: A #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call into the plugin's unlock routine
  *
@@ -1792,10 +1791,10 @@ fu_plugin_runner_unlock (FuPlugin *self, FuDevice *device, GError **error)
 /**
  * fu_plugin_runner_update:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @blob_fw: A #GBytes
- * @flags: A #FwupdInstallFlags
- * @error: A #GError or NULL
+ * @device: a device
+ * @blob_fw: a data blob
+ * @flags: install flags
+ * @error: (nullable): optional return location for an error
  *
  * Call into the plugin's update routine
  *
@@ -1867,8 +1866,8 @@ fu_plugin_runner_update (FuPlugin *self,
 /**
  * fu_plugin_runner_clear_results:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: A #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call into the plugin's clear results routine
  *
@@ -1920,8 +1919,8 @@ fu_plugin_runner_clear_results (FuPlugin *self, FuDevice *device, GError **error
 /**
  * fu_plugin_runner_get_results:
  * @self: a #FuPlugin
- * @device: a #FuDevice
- * @error: A #GError or NULL
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Call into the plugin's get results routine
  *
@@ -1991,7 +1990,7 @@ fu_plugin_get_order (FuPlugin *self)
 /**
  * fu_plugin_set_order:
  * @self: a #FuPlugin
- * @order: a integer value
+ * @order: an integer value
  *
  * Sets the plugin order, where higher numbers are run after lower
  * numbers.
@@ -2025,7 +2024,7 @@ fu_plugin_get_priority (FuPlugin *self)
 /**
  * fu_plugin_set_priority:
  * @self: a #FuPlugin
- * @priority: a integer value
+ * @priority: an integer value
  *
  * Sets the plugin priority, where higher numbers are better.
  *
@@ -2041,7 +2040,7 @@ fu_plugin_set_priority (FuPlugin *self, guint priority)
 /**
  * fu_plugin_add_rule:
  * @self: a #FuPlugin
- * @rule: a #FuPluginRule, e.g. %FU_PLUGIN_RULE_CONFLICTS
+ * @rule: a plugin rule, e.g. %FU_PLUGIN_RULE_CONFLICTS
  * @name: a plugin name, e.g. `upower`
  *
  * If the plugin name is found, the rule will be used to sort the plugin list,
@@ -2066,11 +2065,11 @@ fu_plugin_add_rule (FuPlugin *self, FuPluginRule rule, const gchar *name)
 /**
  * fu_plugin_get_rules:
  * @self: a #FuPlugin
- * @rule: a #FuPluginRule, e.g. %FU_PLUGIN_RULE_CONFLICTS
+ * @rule: a plugin rule, e.g. %FU_PLUGIN_RULE_CONFLICTS
  *
  * Gets the plugin IDs that should be run after this plugin.
  *
- * Returns: (element-type utf8) (transfer none) (nullable): the list of plugin names, e.g. ['appstream']
+ * Returns: (element-type utf8) (transfer none) (nullable): the list of plugin names, e.g. `['appstream']`
  *
  * Since: 1.0.0
  **/
@@ -2085,7 +2084,7 @@ fu_plugin_get_rules (FuPlugin *self, FuPluginRule rule)
 /**
  * fu_plugin_has_rule:
  * @self: a #FuPlugin
- * @rule: a #FuPluginRule, e.g. %FU_PLUGIN_RULE_CONFLICTS
+ * @rule: a plugin rule, e.g. %FU_PLUGIN_RULE_CONFLICTS
  * @name: a plugin name, e.g. `upower`
  *
  * Gets the plugin IDs that should be run after this plugin.
@@ -2155,7 +2154,7 @@ fu_plugin_get_report_metadata (FuPlugin *self)
 /**
  * fu_plugin_get_config_value:
  * @self: a #FuPlugin
- * @key: A settings key
+ * @key: a settings key
  *
  * Return the value of a key if it's been configured
  *
@@ -2186,7 +2185,7 @@ fu_plugin_get_config_value (FuPlugin *self, const gchar *key)
 /**
  * fu_plugin_get_config_value_boolean:
  * @self: a #FuPlugin
- * @key: A settings key
+ * @key: a settings key
  *
  * Return the boolean value of a key if it's been configured
  *
@@ -2331,6 +2330,7 @@ fu_plugin_finalize (GObject *object)
 
 /**
  * fu_plugin_new:
+ * @ctx: (nullable): a #FuContext
  *
  * Creates a new #FuPlugin
  *

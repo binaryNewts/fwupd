@@ -17,14 +17,12 @@
 #include "fu-usb-device.h"
 
 /**
- * SECTION:fu-device-locker
- * @title: FuDeviceLocker
- * @short_description: a device helper object
+ * FuDeviceLocker:
  *
- * An object that makes it easy to close a device when an object goes out of
+ * Easily close a shared resource (such as a device) when an object goes out of
  * scope.
  *
- * See also: #FuDevice
+ * See also: [class@FuDevice]
  */
 
 struct _FuDeviceLocker {
@@ -67,8 +65,8 @@ fu_device_locker_init (FuDeviceLocker *self)
 
 /**
  * fu_device_locker_close:
- * @self: A #FuDeviceLocker
- * @error: A #GError, or %NULL
+ * @self: a #FuDeviceLocker
+ * @error: (nullable): optional return location for an error
  *
  * Closes the locker before it gets cleaned up.
  *
@@ -110,8 +108,8 @@ fu_device_locker_close (FuDeviceLocker *self, GError **error)
 
 /**
  * fu_device_locker_new:
- * @device: A #GObject
- * @error: A #GError, or %NULL
+ * @device: a #GObject
+ * @error: (nullable): optional return location for an error
  *
  * Opens the device for use. When the #FuDeviceLocker is deallocated the device
  * will be closed and any error will just be directed to the console.
@@ -128,7 +126,7 @@ fu_device_locker_close (FuDeviceLocker *self, GError **error)
  *
  * Think of this object as the device ownership.
  *
- * Returns: a #FuDeviceLocker, or %NULL if the @open_func failed.
+ * Returns: a device locker, or %NULL if the @open_func failed.
  *
  * Since: 1.0.0
  **/
@@ -164,10 +162,10 @@ fu_device_locker_new (gpointer device, GError **error)
 
 /**
  * fu_device_locker_new_full:
- * @device: A #GObject
- * @open_func: (scope async): A function to open the device
- * @close_func: (scope async): A function to close the device
- * @error: A #GError, or %NULL
+ * @device: a #GObject
+ * @open_func: (scope async): a function to open the device
+ * @close_func: (scope async): a function to close the device
+ * @error: (nullable): optional return location for an error
  *
  * Opens the device for use. When the #FuDeviceLocker is deallocated the device
  * will be closed and any error will just be directed to the console.
@@ -178,7 +176,7 @@ fu_device_locker_new (gpointer device, GError **error)
  *
  * Think of this object as the device ownership.
  *
- * Returns: a #FuDeviceLocker, or %NULL if the @open_func failed.
+ * Returns: a device locker, or %NULL if the @open_func failed.
  *
  * Since: 1.0.0
  **/
@@ -202,8 +200,14 @@ fu_device_locker_new_full (gpointer device,
 	self->close_func = close_func;
 
 	/* open device */
-	if (!self->open_func (device, error))
+	if (!self->open_func (device, error)) {
+		g_autoptr(GError) error_local = NULL;
+		if (!self->close_func (device, &error_local)) {
+			g_debug ("ignoring close error on aborted open: %s",
+				 error_local->message);
+		}
 		return NULL;
+	}
 
 	/* success */
 	self->device_open = TRUE;

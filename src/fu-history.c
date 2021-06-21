@@ -485,9 +485,9 @@ fu_history_get_device_flags_filtered (FuDevice *device)
 
 /**
  * fu_history_modify_device:
- * @self: A #FuHistory
- * @device: A #FuDevice
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Modify a device in the history database
  *
@@ -545,10 +545,10 @@ fu_history_modify_device (FuHistory *self, FuDevice *device, GError **error)
 
 /**
  * fu_history_set_device_metadata:
- * @self: A #FuHistory
- * @device_id: A DeviceID string
- * @metadata: A #GHashTable of string:string
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @device_id: a DeviceID string
+ * @metadata: a #GHashTable of string:string
+ * @error: (nullable): optional return location for an error
  *
  * Modify a device in the history database
  *
@@ -601,10 +601,10 @@ fu_history_set_device_metadata (FuHistory *self,
 
 /**
  * fu_history_add_device:
- * @self: A #FuHistory
- * @device: A #FuDevice
- * @release: A #FuRelease
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @device: a device
+ * @release: a #FuRelease
+ * @error: (nullable): optional return location for an error
  *
  * Adds a device to the history database
  *
@@ -695,9 +695,9 @@ fu_history_add_device (FuHistory *self, FuDevice *device, FwupdRelease *release,
 
 /**
  * fu_history_remove_all_with_state:
- * @self: A #FuHistory
- * @update_state: A #FwupdUpdateState
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @update_state: a #FwupdUpdateState
+ * @error: (nullable): optional return location for an error
  *
  * Remove all devices from the history database that match
  * state update_state
@@ -741,8 +741,8 @@ fu_history_remove_all_with_state (FuHistory *self,
 
 /**
  * fu_history_remove_all:
- * @self: A #FuHistory
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @error: (nullable): optional return location for an error
  *
  * Remove all devices from the history database
  *
@@ -779,9 +779,9 @@ fu_history_remove_all (FuHistory *self, GError **error)
 
 /**
  * fu_history_remove_device:
- * @self: A #FuHistory
- * @device: A #FuDevice
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @device: a device
+ * @error: (nullable): optional return location for an error
  *
  * Remove a device from the history database
  *
@@ -824,13 +824,13 @@ fu_history_remove_device (FuHistory *self,  FuDevice *device, GError **error)
 
 /**
  * fu_history_get_device_by_id:
- * @self: A #FuHistory
- * @device_id: A string
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @device_id: a string
+ * @error: (nullable): optional return location for an error
  *
  * Returns the device from the history database or NULL if not found
  *
- * Returns: (transfer full): a #FuDevice
+ * Returns: (transfer full): a device
  *
  * Since: 1.0.4
  **/
@@ -892,8 +892,8 @@ fu_history_get_device_by_id (FuHistory *self, const gchar *device_id, GError **e
 }
 /**
  * fu_history_get_devices:
- * @self: A #FuHistory
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @error: (nullable): optional return location for an error
  *
  * Gets the devices in the history database.
  *
@@ -955,8 +955,8 @@ fu_history_get_devices (FuHistory *self, GError **error)
 
 /**
  * fu_history_get_approved_firmware:
- * @self: A #FuHistory
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @error: (nullable): optional return location for an error
  *
  * Returns approved firmware records.
  *
@@ -1008,8 +1008,8 @@ fu_history_get_approved_firmware (FuHistory *self, GError **error)
 
 /**
  * fu_history_clear_approved_firmware:
- * @self: A #FuHistory
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @error: (nullable): optional return location for an error
  *
  * Clear all approved firmware records
  *
@@ -1047,9 +1047,9 @@ fu_history_clear_approved_firmware (FuHistory *self, GError **error)
 
 /**
  * fu_history_add_approved_firmware:
- * @self: A #FuHistory
+ * @self: a #FuHistory
  * @checksum: a string
- * @error: A #GError or NULL
+ * @error: (nullable): optional return location for an error
  *
  * Add an approved firmware record to the database
  *
@@ -1090,8 +1090,8 @@ fu_history_add_approved_firmware (FuHistory *self,
 }
 /**
  * fu_history_get_blocked_firmware:
- * @self: A #FuHistory
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @error: (nullable): optional return location for an error
  *
  * Returns blocked firmware records.
  *
@@ -1143,8 +1143,8 @@ fu_history_get_blocked_firmware (FuHistory *self, GError **error)
 
 /**
  * fu_history_clear_blocked_firmware:
- * @self: A #FuHistory
- * @error: A #GError or NULL
+ * @self: a #FuHistory
+ * @error: (nullable): optional return location for an error
  *
  * Clear all blocked firmware records
  *
@@ -1182,9 +1182,9 @@ fu_history_clear_blocked_firmware (FuHistory *self, GError **error)
 
 /**
  * fu_history_add_blocked_firmware:
- * @self: A #FuHistory
+ * @self: a #FuHistory
  * @checksum: a string
- * @error: A #GError or NULL
+ * @error: (nullable): optional return location for an error
  *
  * Add an blocked firmware record to the database
  *

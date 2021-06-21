@@ -6,10 +6,9 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
 #include <libmm-glib.h>
-
-#include "fu-plugin-vfuncs.h"
 
 #include "fu-mm-device.h"
 #include "fu-mm-utils.h"
@@ -149,21 +148,22 @@ fu_plugin_mm_udev_uevent_cb (GUdevClient	*udev,
 	const gchar *name = g_udev_device_get_name (device);
 	g_autofree gchar *path = NULL;
 	g_autofree gchar *device_sysfs_path = NULL;
+	g_autofree gchar *device_bus = NULL;
 	gint ifnum = -1;
 
 	if (action == NULL || subsystem == NULL || priv->inhibited == NULL || name == NULL)
 		return TRUE;
 
 	/* ignore if loading port info fails */
-	if (!fu_mm_utils_get_udev_port_info (device, &device_sysfs_path, &ifnum, NULL))
+	if (!fu_mm_utils_get_udev_port_info (device, &device_bus, &device_sysfs_path, &ifnum, NULL))
+		return TRUE;
+
+	/* ignore non-USB and non-PCI events */
+	if (g_strcmp0 (device_bus, "USB") != 0 && g_strcmp0 (device_bus, "PCI") != 0)
 		return TRUE;
 
 	/* ignore all events for ports not owned by our device */
 	if (g_strcmp0 (device_sysfs_path, priv->inhibited->physical_id) != 0)
-		return TRUE;
-
-	/* ignore non-cdc-wdm usbmisc ports */
-	if (g_str_equal (subsystem, "usbmisc") && !g_str_has_prefix (name, "cdc-wdm"))
 		return TRUE;
 
 	path = g_strdup_printf ("/dev/%s", name);
@@ -220,7 +220,7 @@ fu_plugin_mm_device_add (FuPlugin *plugin, MMObject *modem)
 		return;
 	}
 	dev = fu_mm_device_new (priv->manager, modem);
-	if (!fu_device_probe (FU_DEVICE (dev), &error)) {
+	if (!fu_device_setup (FU_DEVICE (dev), &error)) {
 		g_warning ("failed to probe MM device: %s", error->message);
 		return;
 	}

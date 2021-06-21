@@ -14,6 +14,12 @@
 #include "fu-security-attrs-private.h"
 #include "fwupd-security-attr-private.h"
 
+/**
+ * FuSecurityAttrs:
+ *
+ * A set of Host Security ID attributes that represents the system state.
+ */
+
 struct _FuSecurityAttrs {
 	GObject			 parent_instance;
 	GPtrArray		*attrs;
@@ -47,7 +53,7 @@ fu_security_attrs_init (FuSecurityAttrs *self)
 
 /**
  * fu_security_attrs_append:
- * @self: A #FuSecurityAttrs
+ * @self: a #FuSecurityAttrs
  * @attr: a #FwupdSecurityAttr
  *
  * Adds a #FwupdSecurityAttr to the array.
@@ -85,9 +91,9 @@ fu_security_attrs_append (FuSecurityAttrs *self, FwupdSecurityAttr *attr)
 
 /**
  * fu_security_attrs_to_variant:
- * @self: A #FuSecurityAttrs
+ * @self: a #FuSecurityAttrs
  *
- * Converts the #FwupdSecurityAttr objects into a variant array.
+ * Serializes the #FwupdSecurityAttr objects.
  *
  * Returns: a #GVariant or %NULL
  *
@@ -112,7 +118,7 @@ fu_security_attrs_to_variant (FuSecurityAttrs *self)
 
 /**
  * fu_security_attrs_get_all:
- * @self: A #FuSecurityAttrs
+ * @self: a #FuSecurityAttrs
  *
  * Gets all the attributes in the object.
  *
@@ -129,7 +135,7 @@ fu_security_attrs_get_all (FuSecurityAttrs *self)
 
 /**
  * fu_security_attrs_remove_all:
- * @self: A #FuSecurityAttrs
+ * @self: a #FuSecurityAttrs
  *
  * Removes all the attributes in the object.
  *
@@ -144,8 +150,8 @@ fu_security_attrs_remove_all (FuSecurityAttrs *self)
 
 /**
  * fu_security_attrs_calculate_hsi:
- * @self: A #FuSecurityAttrs
- * @flags: Flags to use while calcuating the HSI
+ * @self: a #FuSecurityAttrs
+ * @flags: HSI attribute flags
  *
  * Calculates the HSI string from the appended attributes.
  *
@@ -261,7 +267,7 @@ fu_security_attrs_sort_cb (gconstpointer item1, gconstpointer item2)
 
 /**
  * fu_security_attrs_depsolve:
- * @self: A #FuSecurityAttrs
+ * @self: a #FuSecurityAttrs
  *
  * Marks any attributes with %FWUPD_SECURITY_ATTR_FLAG_OBSOLETED that have been
  * defined as obsoleted by other attributes.
@@ -323,7 +329,7 @@ fu_security_attrs_depsolve (FuSecurityAttrs *self)
 /**
  * fu_security_attrs_new:
  *
- * Returns: a #FuSecurityAttrs
+ * Returns: a security attribute
  *
  * Since: 1.5.0
  **/

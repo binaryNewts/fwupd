@@ -16,9 +16,8 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
-
-#include "fu-common.h"
 
 #include "fu-dell-dock-common.h"
 
@@ -113,9 +112,9 @@ G_DEFINE_TYPE (FuDellDockMst, fu_dell_dock_mst, FU_TYPE_DEVICE)
 
 /**
  * fu_dell_dock_mst_get_bank_attribs:
- * @bank: An MSTBank
- * @out (out): The MSTBankAttributes attribute that matches
- * @error: the #GError, or %NULL
+ * @bank: the MSTBank
+ * @out (out): the MSTBankAttributes attribute that matches
+ * @error: (nullable): optional return location for an error
  *
  * Returns a structure that corresponds to the attributes for a bank
  *

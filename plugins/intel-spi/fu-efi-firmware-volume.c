@@ -6,18 +6,18 @@
 
 #include "config.h"
 
-#include "fu-common.h"
+#include <fwupdplugin.h>
+
 #include "fu-efi-common.h"
 #include "fu-efi-firmware-filesystem.h"
 #include "fu-efi-firmware-volume.h"
 
 /**
- * SECTION:fu-uefi-firmware-volume
- * @short_description: UEFI Volume
+ * FuEfiFirmwareVolume:
  *
- * An object that represents a UEFI file volume.
+ * A UEFI file volume.
  *
- * See also: #FuFirmware
+ * See also: [class@FuFirmware]
  */
 
 typedef struct {

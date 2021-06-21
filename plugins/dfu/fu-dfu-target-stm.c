@@ -6,6 +6,7 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,11 +14,7 @@
 #include "fu-dfu-common.h"
 #include "fu-dfu-sector.h"
 #include "fu-dfu-target-stm.h"
-#include "fu-dfu-target-private.h"
-
-#include "fu-chunk.h"
-
-#include "fwupd-error.h"
+#include "fu-dfu-target-private.h" /* waive-pre-commit */
 
 G_DEFINE_TYPE (FuDfuTargetStm, fu_dfu_target_stm, FU_TYPE_DFU_TARGET)
 
@@ -59,11 +56,11 @@ fu_dfu_target_stm_mass_erase (FuDfuTarget *target, GError **error)
  * fu_dfu_target_stm_set_address:
  * @target: a #FuDfuTarget
  * @address: memory address
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Sets the address used for the next download or upload request.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_stm_set_address (FuDfuTarget *target, guint32 address, GError **error)
@@ -215,11 +212,11 @@ fu_dfu_target_stm_upload_element (FuDfuTarget *target,
  * fu_dfu_target_stm_erase_address:
  * @target: a #FuDfuTarget
  * @address: memory address
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Erases a memory sector at a given address.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_stm_erase_address (FuDfuTarget *target, guint32 address, GError **error)

@@ -13,22 +13,12 @@
 #include "fwupd-error.h"
 
 /**
- * SECTION:fwupd-error
- * @short_description: an error domain shared by the daemon and library
- *
- * This file also provides helper functions to map errors to strings and back
- * again.
- *
- * See also: #fwupd-enums
- */
-
-/**
  * fwupd_error_to_string:
- * @error: A #FwupdError, e.g. %FWUPD_ERROR_VERSION_NEWER
+ * @error: an enumerated error, e.g. %FWUPD_ERROR_VERSION_NEWER
  *
- * Converts a #FwupdError to a string.
+ * Converts an enumerated error to a string.
  *
- * Return value: identifier string
+ * Returns: identifier string
  *
  * Since: 0.7.0
  **/
@@ -74,11 +64,11 @@ fwupd_error_to_string (FwupdError error)
 
 /**
  * fwupd_error_from_string:
- * @error: A string, e.g. `org.freedesktop.fwupd.VersionNewer`
+ * @error: a string, e.g. `org.freedesktop.fwupd.VersionNewer`
  *
- * Converts a string to a #FwupdError.
+ * Converts a string to an enumerated error.
  *
- * Return value: enumerated value
+ * Returns: enumerated value
  *
  * Since: 0.7.0
  **/
@@ -125,7 +115,9 @@ fwupd_error_from_string (const gchar *error)
 /**
  * fwupd_error_quark:
  *
- * Return value: An error quark.
+ * The error quark for [error@FwupdError].
+ *
+ * Returns: an error quark
  *
  * Since: 0.1.1
  **/

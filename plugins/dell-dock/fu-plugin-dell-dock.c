@@ -15,9 +15,7 @@
 
 #include "config.h"
 
-#include "fu-device.h"
-#include "fwupd-error.h"
-#include "fu-plugin-vfuncs.h"
+#include <fwupdplugin.h>
 
 #include "fu-dell-dock-common.h"
 
@@ -68,12 +66,37 @@ fu_plugin_dell_dock_probe (FuPlugin *plugin,
 			   FuDevice *proxy,
 			   GError **error)
 {
+	const gchar* instance;
 	g_autoptr(FuDellDockEc) ec_device = NULL;
+	g_autoptr(FuDellDockMst) mst_device = NULL;
+	g_autoptr(FuDellDockStatus) status_device = NULL;
 
-	/* create all static endpoints */
+	/* create ec endpoint */
 	ec_device = fu_dell_dock_ec_new (proxy);
 	if (!fu_plugin_dell_dock_create_node (plugin,
 					      FU_DEVICE (ec_device),
+					      error))
+		return FALSE;
+
+	/* create mst endpoint */
+	mst_device = fu_dell_dock_mst_new ();
+	fu_device_add_child (FU_DEVICE (ec_device), FU_DEVICE (mst_device));
+	fu_device_add_instance_id (FU_DEVICE (mst_device), "MST-panamera-vmm5331-259");
+	if (!fu_plugin_dell_dock_create_node (plugin,
+					      FU_DEVICE (mst_device),
+					      error))
+		return FALSE;
+
+	/* create package version endpoint */
+	status_device = fu_dell_dock_status_new ();
+	if (fu_dell_dock_module_is_usb4 (FU_DEVICE (ec_device)))
+		instance = "USB\\VID_413C&PID_B06E&hub&salomon_mlk_status";
+	else
+		instance = "USB\\VID_413C&PID_B06E&hub&status";
+	fu_device_add_child (FU_DEVICE (ec_device), FU_DEVICE (status_device));
+	fu_device_add_instance_id (FU_DEVICE (status_device), instance);
+	if (!fu_plugin_dell_dock_create_node (plugin,
+					      FU_DEVICE (status_device),
 					      error))
 		return FALSE;
 
@@ -102,6 +125,18 @@ fu_plugin_backend_device_added (FuPlugin *plugin,
 	/* not interesting */
 	if (!FU_IS_USB_DEVICE (device))
 		return TRUE;
+
+	/* GR controller internal USB HUB */
+	if ((guint) fu_usb_device_get_vid (FU_USB_DEVICE (device)) == GR_USB_VID &&
+	    (guint) fu_usb_device_get_pid (FU_USB_DEVICE (device)) == GR_USB_PID) {
+		g_autoptr(FuDellDockUsb4) usb4_dev = NULL;
+		usb4_dev = fu_dell_dock_usb4_new (FU_USB_DEVICE (device));
+		locker = fu_device_locker_new (FU_DEVICE (usb4_dev), error);
+		if (locker == NULL)
+			return FALSE;
+		fu_plugin_device_add (plugin, FU_DEVICE (usb4_dev));
+		return TRUE;
+	}
 
 	hub = fu_dell_dock_hub_new (FU_USB_DEVICE (device));
 	locker = fu_device_locker_new (FU_DEVICE (hub), error);
@@ -140,6 +175,15 @@ void
 fu_plugin_device_registered (FuPlugin *plugin, FuDevice *device)
 {
 	/* thunderbolt plugin */
+	if (g_strcmp0 (fu_device_get_plugin (device), "thunderbolt") == 0 &&
+	    fu_device_has_guid (device, DELL_DOCK_USB4_INSTANCE_ID)) {
+		g_autofree gchar *msg = NULL;
+		msg = g_strdup_printf ("firmware update inhibited by [%s] plugin",
+				       fu_plugin_get_name (plugin));
+		fu_device_inhibit (device, "usb4-blocked", msg);
+		return;
+	}
+
 	if (g_strcmp0 (fu_device_get_plugin (device), "thunderbolt") != 0 ||
 	    fu_device_has_flag (device, FWUPD_DEVICE_FLAG_INTERNAL))
 		return;
@@ -221,7 +265,8 @@ fu_plugin_composite_cleanup (FuPlugin *plugin,
 	/* if thunderbolt is in the transaction it needs to be activated separately */
 	for (guint i = 0; i < devices->len; i++) {
 		dev = g_ptr_array_index (devices, i);
-		if (g_strcmp0 (fu_device_get_plugin (dev), "thunderbolt") == 0 &&
+		if ((g_strcmp0 (fu_device_get_plugin (dev), "thunderbolt") == 0 ||
+		     g_strcmp0 (fu_device_get_plugin (dev), "dell_dock") == 0) &&
 		    fu_device_has_flag (dev, FWUPD_DEVICE_FLAG_NEEDS_ACTIVATION)) {
 			/* the kernel and/or thunderbolt plugin have been configured to let HW finish the update */
 			if (fu_device_has_flag (dev, FWUPD_DEVICE_FLAG_USABLE_DURING_UPDATE)) {

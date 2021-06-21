@@ -7,7 +7,7 @@
 
 #include "config.h"
 
-#include "fu-chunk.h"
+#include <fwupdplugin.h>
 
 #include "fu-goodixmoc-common.h"
 #include "fu-goodixmoc-device.h"
@@ -309,6 +309,10 @@ static gboolean
 fu_goodixmoc_device_setup (FuDevice *device, GError **error)
 {
 	FuGoodixMocDevice *self = FU_GOODIXMOC_DEVICE (device);
+
+	/* FuUsbDevice->setup */
+	if (!FU_DEVICE_CLASS (fu_goodixmoc_device_parent_class)->setup (device, error))
+		return FALSE;
 
 	/* ensure version */
 	if (!fu_goodixmoc_device_setup_version (self, error)) {

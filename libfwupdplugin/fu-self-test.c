@@ -8,12 +8,12 @@
 
 #include <string.h>
 #include <xmlb.h>
-#include <fwupd.h>
 #include <fwupdplugin.h>
 #include <libgcab.h>
 #include <glib/gstdio.h>
 
 #include "fu-cabinet.h"
+#include "fu-common-private.h"
 #include "fu-context-private.h"
 #include "fu-device-private.h"
 #include "fu-plugin-private.h"
@@ -119,6 +119,15 @@ fu_archive_cab_func (void)
 	data_tmp = fu_archive_lookup_by_fn (archive, "NOTGOINGTOEXIST.xml", &error);
 	g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND);
 	g_assert_null (data_tmp);
+}
+
+static void
+fu_common_gpt_type_func (void)
+{
+	g_assert_cmpstr (fu_common_convert_to_gpt_type ("0xef"), ==, "c12a7328-f81f-11d2-ba4b-00a0c93ec93b");
+	g_assert_cmpstr (fu_common_convert_to_gpt_type ("0x0b"), ==, "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7");
+	g_assert_cmpstr (fu_common_convert_to_gpt_type ("fat32lba"), ==, "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7");
+	g_assert_cmpstr (fu_common_convert_to_gpt_type ("0x00"), ==, "0x00");
 }
 
 static void
@@ -593,21 +602,26 @@ fu_plugin_quirks_device_func (void)
 static void fu_common_kernel_lockdown_func (void)
 {
 	gboolean ret;
-	g_autofree gchar *old_kernel_dir = g_build_filename (TESTDATADIR_SRC,
-							     "lockdown", NULL);
-	g_autofree gchar *locked_dir = g_build_filename (TESTDATADIR_SRC,
-							 "lockdown", "locked", NULL);
-	g_autofree gchar *none_dir = g_build_filename (TESTDATADIR_SRC,
-							"lockedown", "none", NULL);
+	g_autofree gchar *locked_dir = NULL;
+	g_autofree gchar *none_dir = NULL;
+	g_autofree gchar *old_kernel_dir = NULL;
 
+#ifndef __linux__
+	g_test_skip ("only works on Linux");
+	return;
+#endif
+
+	old_kernel_dir = g_build_filename (TESTDATADIR_SRC, "lockdown", NULL);
 	g_setenv ("FWUPD_SYSFSSECURITYDIR", old_kernel_dir, TRUE);
 	ret = fu_common_kernel_locked_down ();
 	g_assert_false (ret);
 
+	locked_dir = g_build_filename (TESTDATADIR_SRC, "lockdown", "locked", NULL);
 	g_setenv ("FWUPD_SYSFSSECURITYDIR", locked_dir, TRUE);
 	ret = fu_common_kernel_locked_down ();
 	g_assert_true (ret);
 
+	none_dir = g_build_filename (TESTDATADIR_SRC, "lockdown", "none", NULL);
 	g_setenv ("FWUPD_SYSFSSECURITYDIR", none_dir, TRUE);
 	ret = fu_common_kernel_locked_down ();
 	g_assert_false (ret);
@@ -690,17 +704,19 @@ fu_device_locker_func (void)
 }
 
 static gboolean
-_fail_open_cb (GObject *device, GError **error)
+_fail_open_cb (FuDevice *device, GError **error)
 {
+	fu_device_set_metadata_boolean (device, "Test::Open", TRUE);
 	g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "fail");
 	return FALSE;
 }
 
 static gboolean
-_fail_close_cb (GObject *device, GError **error)
+_fail_close_cb (FuDevice *device, GError **error)
 {
-	g_assert_not_reached ();
-	return TRUE;
+	fu_device_set_metadata_boolean (device, "Test::Close", TRUE);
+	g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_BUSY, "busy");
+	return FALSE;
 }
 
 static void
@@ -708,10 +724,16 @@ fu_device_locker_fail_func (void)
 {
 	g_autoptr(FuDeviceLocker) locker = NULL;
 	g_autoptr(GError) error = NULL;
-	g_autoptr(GObject) device = g_object_new (G_TYPE_OBJECT, NULL);
-	locker = fu_device_locker_new_full (device, _fail_open_cb, _fail_close_cb, &error);
+	g_autoptr(FuDevice) device = fu_device_new ();
+	locker = fu_device_locker_new_full (device,
+					    (FuDeviceLockerFunc) _fail_open_cb,
+					    (FuDeviceLockerFunc) _fail_close_cb,
+					    &error);
 	g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
 	g_assert_null (locker);
+	g_assert_true (fu_device_get_metadata_boolean (device, "Test::Open"));
+	g_assert_true (fu_device_get_metadata_boolean (device, "Test::Close"));
+	g_assert_false (fu_device_has_internal_flag (device, FU_DEVICE_INTERNAL_FLAG_IS_OPEN));
 }
 
 static void
@@ -929,6 +951,37 @@ fu_common_store_cab_func (void)
 }
 
 static void
+fu_common_store_cab_artifact_func (void)
+{
+	g_autoptr(GBytes) blob = NULL;
+	g_autoptr(GError) error = NULL;
+	g_autoptr(XbSilo) silo = NULL;
+
+	/* create silo */
+	blob = _build_cab (GCAB_COMPRESSION_NONE,
+			   "acme.metainfo.xml",
+	"<component type=\"firmware\">\n"
+	"  <id>com.acme.example.firmware</id>\n"
+	"  <releases>\n"
+	"    <release version=\"1.2.3\" date=\"2017-09-06\">\n"
+	"      <artifacts>\n"
+	"        <artifact type=\"binary\">\n"
+	"          <filename>firmware.dfu</filename>\n"
+	"          <checksum type=\"sha256\">486ea46224d1bb4fb680f34f7c9ad96a8f24ec88be73ea8e5a6c65260e9cb8a7</checksum>\n"
+	"        </artifact>\n"
+	"      </artifacts>\n"
+	"    </release>\n"
+	"  </releases>\n"
+	"</component>",
+			   "firmware.dfu", "world",
+			   "firmware.dfu.asc", "signature",
+			   NULL);
+	silo = fu_common_cab_build_silo (blob, 10240, &error);
+	g_assert_no_error (error);
+	g_assert_nonnull (silo);
+}
+
+static void
 fu_common_store_cab_unsigned_func (void)
 {
 	GBytes *blob_tmp;
@@ -979,6 +1032,31 @@ fu_common_store_cab_unsigned_func (void)
 	g_assert_null (csum);
 	blob_tmp = xb_node_get_data (rel, "fwupd::FirmwareBlob");
 	g_assert_nonnull (blob_tmp);
+}
+
+static void
+fu_common_store_cab_sha256_func (void)
+{
+	g_autoptr(GBytes) blob = NULL;
+	g_autoptr(GError) error = NULL;
+	g_autoptr(XbSilo) silo = NULL;
+
+	/* create silo */
+	blob = _build_cab (GCAB_COMPRESSION_NONE,
+			   "acme.metainfo.xml",
+	"<component type=\"firmware\">\n"
+	"  <id>com.acme.example.firmware</id>\n"
+	"  <releases>\n"
+	"    <release version=\"1.2.3\" date=\"2017-09-06\">\n"
+	"      <checksum target=\"content\" type=\"sha256\">486ea46224d1bb4fb680f34f7c9ad96a8f24ec88be73ea8e5a6c65260e9cb8a7</checksum>\n"
+	"    </release>\n"
+	"  </releases>\n"
+	"</component>",
+			   "firmware.bin", "world",
+			   NULL);
+	silo = fu_common_cab_build_silo (blob, 10240, &error);
+	g_assert_no_error (error);
+	g_assert_nonnull (silo);
 }
 
 static void
@@ -1104,7 +1182,6 @@ fu_common_bytes_get_data_func (void)
 	gboolean ret;
 	g_autoptr(GBytes) bytes1 = NULL;
 	g_autoptr(GBytes) bytes2 = NULL;
-	g_autoptr(GBytes) bytes3 = NULL;
 	g_autoptr(GError) error = NULL;
 	g_autoptr(GMappedFile) mmap = NULL;
 
@@ -1318,6 +1395,14 @@ fu_device_flags_func (void)
 {
 	g_autoptr(FuDevice) device = fu_device_new ();
 
+	/* bitfield */
+	for (guint64 i = 1; i < FU_DEVICE_INTERNAL_FLAG_UNKNOWN; i *= 2) {
+		const gchar *tmp = fu_device_internal_flag_to_string (i);
+		if (tmp == NULL)
+			break;
+		g_assert_cmpint (fu_device_internal_flag_from_string (tmp), ==, i);
+	}
+
 	g_assert_cmpint (fu_device_get_flags (device), ==, FWUPD_DEVICE_FLAG_NONE);
 
 	/* remove IS_BOOTLOADER if is a BOOTLOADER */
@@ -1433,6 +1518,54 @@ fu_device_incorporate_func (void)
 	g_assert_cmpint (fu_device_get_created (device), ==, 123);
 	g_assert_cmpint (fu_device_get_modified (device), ==, 789);
 	g_assert_cmpint (fu_device_get_icons(device)->len, ==, 1);
+}
+
+static void
+fu_backend_func (void)
+{
+	FuDevice *dev;
+	gboolean ret;
+	g_autoptr(FuBackend) backend = g_object_new (FU_TYPE_BACKEND, NULL);
+	g_autoptr(FuDevice) dev1 = fu_device_new ();
+	g_autoptr(FuDevice) dev2 = fu_device_new ();
+	g_autoptr(GError) error = NULL;
+	g_autoptr(GPtrArray) devices = NULL;
+
+	/* defaults */
+	g_assert_null (fu_backend_get_name (backend));
+	g_assert_true (fu_backend_get_enabled (backend));
+
+	/* load */
+	ret = fu_backend_setup (backend, &error);
+	g_assert_no_error (error);
+	g_assert_true (ret);
+	ret = fu_backend_coldplug (backend, &error);
+	g_assert_no_error (error);
+	g_assert_true (ret);
+
+	/* add two devices, then remove one of them */
+	fu_device_set_physical_id (dev1, "dev1");
+	fu_backend_device_added (backend, dev1);
+	fu_device_set_physical_id (dev2, "dev2");
+	fu_backend_device_added (backend, dev2);
+	fu_backend_device_changed (backend, dev2);
+	fu_backend_device_removed (backend, dev2);
+
+	dev = fu_backend_lookup_by_id (backend, "dev1");
+	g_assert_nonnull (dev);
+	g_assert (dev == dev1);
+
+	/* should have been removed */
+	dev = fu_backend_lookup_by_id (backend, "dev2");
+	g_assert_null (dev);
+
+	/* get linear array */
+	devices = fu_backend_get_devices (backend);
+	g_assert_nonnull (devices);
+	g_assert_cmpint (devices->len, ==, 1);
+	dev = g_ptr_array_index (devices, 0);
+	g_assert_nonnull (dev);
+	g_assert (dev == dev1);
 }
 
 static void
@@ -2086,6 +2219,11 @@ fu_firmware_fmap_func (void)
 	g_autoptr(GError) error = NULL;
 	g_autoptr(GPtrArray) images = NULL;
 
+#ifndef HAVE_MEMMEM
+	g_test_skip ("no memmem()");
+	return;
+#endif
+
 	/* load firmware */
 	filename = g_build_filename (TESTDATADIR_SRC, "firmware.fmap", NULL);
 	g_assert (filename != NULL);
@@ -2328,6 +2466,11 @@ fu_efivar_func (void)
 	g_autofree guint8 *data = NULL;
 	g_autoptr(GError) error = NULL;
 	g_autoptr(GPtrArray) names = NULL;
+
+#ifndef __linux__
+	g_test_skip ("only works on Linux");
+	return;
+#endif
 
 	/* check supported */
 	ret = fu_efivar_supported (&error);
@@ -2741,8 +2884,10 @@ main (int argc, char **argv)
 	g_test_add_func ("/fwupd/plugin{quirks}", fu_plugin_quirks_func);
 	g_test_add_func ("/fwupd/plugin{quirks-performance}", fu_plugin_quirks_performance_func);
 	g_test_add_func ("/fwupd/plugin{quirks-device}", fu_plugin_quirks_device_func);
+	g_test_add_func ("/fwupd/backend", fu_backend_func);
 	g_test_add_func ("/fwupd/chunk", fu_chunk_func);
 	g_test_add_func ("/fwupd/common{align-up}", fu_common_align_up_func);
+	g_test_add_func ("/fwupd/common{gpt-type}", fu_common_gpt_type_func);
 	g_test_add_func ("/fwupd/common{byte-array}", fu_common_byte_array_func);
 	g_test_add_func ("/fwupd/common{crc}", fu_common_crc_func);
 	g_test_add_func ("/fwupd/common{string-append-kv}", fu_common_string_append_kv_func);
@@ -2754,8 +2899,10 @@ main (int argc, char **argv)
 	g_test_add_func ("/fwupd/common{endian}", fu_common_endian_func);
 	g_test_add_func ("/fwupd/common{cabinet}", fu_common_cabinet_func);
 	g_test_add_func ("/fwupd/common{cab-success}", fu_common_store_cab_func);
+	g_test_add_func ("/fwupd/common{cab-success-artifact}", fu_common_store_cab_artifact_func);
 	g_test_add_func ("/fwupd/common{cab-success-unsigned}", fu_common_store_cab_unsigned_func);
 	g_test_add_func ("/fwupd/common{cab-success-folder}", fu_common_store_cab_folder_func);
+	g_test_add_func ("/fwupd/common{cab-success-sha256}", fu_common_store_cab_sha256_func);
 	g_test_add_func ("/fwupd/common{cab-error-no-metadata}", fu_common_store_cab_error_no_metadata_func);
 	g_test_add_func ("/fwupd/common{cab-error-wrong-size}", fu_common_store_cab_error_wrong_size_func);
 	g_test_add_func ("/fwupd/common{cab-error-wrong-checksum}", fu_common_store_cab_error_wrong_checksum_func);

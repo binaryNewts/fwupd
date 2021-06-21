@@ -13,11 +13,11 @@
 #include "fu-firmware.h"
 
 /**
- * SECTION:fu-firmware
- * @short_description: a firmware file
+ * FuFirmware:
  *
- * An object that represents a firmware file.
- * See also: #FuDfuFirmware, #FuIhexFirmware, #FuSrecFirmware
+ * A firmware file which can have children which represent the images within.
+ *
+ * See also: [class@FuDfuFirmware], [class@FuIhexFirmware], [class@FuSrecFirmware]
  */
 
 typedef struct {
@@ -41,11 +41,11 @@ G_DEFINE_TYPE_WITH_PRIVATE (FuFirmware, fu_firmware, G_TYPE_OBJECT)
 
 /**
  * fu_firmware_flag_to_string:
- * @flag: A #FuFirmwareFlags, e.g. %FU_FIRMWARE_FLAG_DEDUPE_ID
+ * @flag: a #FuFirmwareFlags, e.g. %FU_FIRMWARE_FLAG_DEDUPE_ID
  *
  * Converts a #FuFirmwareFlags to a string.
  *
- * Return value: identifier string
+ * Returns: identifier string
  *
  * Since: 1.5.0
  **/
@@ -67,11 +67,11 @@ fu_firmware_flag_to_string (FuFirmwareFlags flag)
 
 /**
  * fu_firmware_flag_from_string:
- * @flag: A string, e.g. `dedupe-id`
+ * @flag: a string, e.g. `dedupe-id`
  *
  * Converts a string to a #FuFirmwareFlags.
  *
- * Return value: enumerated value
+ * Returns: enumerated value
  *
  * Since: 1.5.0
  **/
@@ -91,8 +91,8 @@ fu_firmware_flag_from_string (const gchar *flag)
 
 /**
  * fu_firmware_add_flag:
- * @firmware: A #FuFirmware
- * @flag: the #FuFirmwareFlags
+ * @firmware: a #FuFirmware
+ * @flag: the firmware flag
  *
  * Adds a specific firmware flag to the firmware.
  *
@@ -109,8 +109,8 @@ fu_firmware_add_flag (FuFirmware *firmware, FuFirmwareFlags flag)
 
 /**
  * fu_firmware_has_flag:
- * @firmware: A #FuFirmware
- * @flag: the #FuFirmwareFlags
+ * @firmware: a #FuFirmware
+ * @flag: the firmware flag
  *
  * Finds if the firmware has a specific firmware flag.
  *
@@ -128,7 +128,7 @@ fu_firmware_has_flag (FuFirmware *firmware, FuFirmwareFlags flag)
 
 /**
  * fu_firmware_get_version:
- * @self: A #FuFirmware
+ * @self: a #FuFirmware
  *
  * Gets an optional version that represents the firmware.
  *
@@ -146,8 +146,8 @@ fu_firmware_get_version (FuFirmware *self)
 
 /**
  * fu_firmware_set_version:
- * @self: A #FuFirmware
- * @version: A string version, or %NULL
+ * @self: a #FuFirmware
+ * @version: (nullable): optional string version
  *
  * Sets an optional version that represents the firmware.
  *
@@ -169,7 +169,7 @@ fu_firmware_set_version (FuFirmware *self, const gchar *version)
 
 /**
  * fu_firmware_get_version_raw:
- * @self: A #FuFirmware
+ * @self: a #FuFirmware
  *
  * Gets an raw version that represents the firmware. This is most frequently
  * used when building firmware with `<version_raw>0x123456</version_raw>` in a
@@ -189,8 +189,8 @@ fu_firmware_get_version_raw (FuFirmware *self)
 
 /**
  * fu_firmware_set_version_raw:
- * @self: A #FuFirmware
- * @version_raw: A raw version, or %G_MAXUINT64 for invalid
+ * @self: a #FuFirmware
+ * @version_raw: a raw version, or %G_MAXUINT64 for invalid
  *
  * Sets an raw version that represents the firmware.
  *
@@ -208,7 +208,7 @@ fu_firmware_set_version_raw (FuFirmware *self, guint64 version_raw)
 
 /**
  * fu_firmware_get_filename:
- * @self: A #FuFirmware
+ * @self: a #FuFirmware
  *
  * Gets an optional filename that represents the image source or destination.
  *
@@ -226,8 +226,8 @@ fu_firmware_get_filename (FuFirmware *self)
 
 /**
  * fu_firmware_set_filename:
- * @self: A #FuFirmware
- * @filename: (nullable): A string filename, or %NULL
+ * @self: a #FuFirmware
+ * @filename: (nullable): a string filename
  *
  * Sets an optional filename that represents the image source or destination.
  *
@@ -250,7 +250,7 @@ fu_firmware_set_filename (FuFirmware *self, const gchar *filename)
 /**
  * fu_firmware_set_id:
  * @self: a #FuPlugin
- * @id: (nullable): image ID, e.g. "config"
+ * @id: (nullable): image ID, e.g. `config`
  *
  * Since: 1.6.0
  **/
@@ -274,7 +274,7 @@ fu_firmware_set_id (FuFirmware *self, const gchar *id)
  *
  * Gets the image ID, typically set at construction.
  *
- * Returns: image ID, e.g. "config"
+ * Returns: image ID, e.g. `config`
  *
  * Since: 1.6.0
  **/
@@ -438,7 +438,7 @@ fu_firmware_get_idx (FuFirmware *self)
 /**
  * fu_firmware_set_bytes:
  * @self: a #FuPlugin
- * @bytes: A #GBytes
+ * @bytes: data blob
  *
  * Sets the contents of the image if not created with fu_firmware_new_from_bytes().
  *
@@ -459,7 +459,7 @@ fu_firmware_set_bytes (FuFirmware *self, GBytes *bytes)
 /**
  * fu_firmware_get_bytes:
  * @self: a #FuPlugin
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the firmware payload, which does not have any header or footer included.
  *
@@ -529,11 +529,11 @@ fu_firmware_get_alignment (FuFirmware *self)
 /**
  * fu_firmware_get_chunks:
  * @self: a #FuFirmware
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the optional image chunks.
  *
- * Return value: (transfer container) (element-type FuChunk) (nullable): chunk data, or %NULL
+ * Returns: (transfer container) (element-type FuChunk) (nullable): chunk data, or %NULL
  *
  * Since: 1.6.0
  **/
@@ -592,8 +592,8 @@ fu_firmware_add_chunk (FuFirmware *self, FuChunk *chk)
 /**
  * fu_firmware_get_checksum:
  * @self: a #FuPlugin
- * @csum_kind: a #GChecksumType, e.g. %G_CHECKSUM_SHA256
- * @error: A #GError, or %NULL
+ * @csum_kind: a checksum type, e.g. %G_CHECKSUM_SHA256
+ * @error: (nullable): optional return location for an error
  *
  * Returns a checksum of the payload data.
  *
@@ -630,10 +630,10 @@ fu_firmware_get_checksum (FuFirmware *self,
 
 /**
  * fu_firmware_tokenize:
- * @self: A #FuFirmware
- * @fw: A #GBytes
- * @flags: some #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_FORCE
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @fw: firmware blob
+ * @flags: install flags, e.g. %FWUPD_INSTALL_FLAG_FORCE
+ * @error: (nullable): optional return location for an error
  *
  * Tokenizes a firmware, typically breaking the firmware into records.
  *
@@ -662,12 +662,12 @@ fu_firmware_tokenize (FuFirmware *self, GBytes *fw,
 
 /**
  * fu_firmware_parse_full:
- * @self: A #FuFirmware
- * @fw: A #GBytes
- * @addr_start: Start address, useful for ignoring a bootloader
- * @addr_end: End address, useful for ignoring config bytes
- * @flags: some #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_FORCE
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @fw: firmware blob
+ * @addr_start: start address, useful for ignoring a bootloader
+ * @addr_end: end address, useful for ignoring config bytes
+ * @flags: install flags, e.g. %FWUPD_INSTALL_FLAG_FORCE
+ * @error: (nullable): optional return location for an error
  *
  * Parses a firmware, typically breaking the firmware into images.
  *
@@ -714,10 +714,10 @@ fu_firmware_parse_full (FuFirmware *self,
 
 /**
  * fu_firmware_parse:
- * @self: A #FuFirmware
- * @fw: A #GBytes
- * @flags: some #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_FORCE
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @fw: firmware blob
+ * @flags: install flags, e.g. %FWUPD_INSTALL_FLAG_FORCE
+ * @error: (nullable): optional return location for an error
  *
  * Parses a firmware, typically breaking the firmware into images.
  *
@@ -733,9 +733,9 @@ fu_firmware_parse (FuFirmware *self, GBytes *fw, FwupdInstallFlags flags, GError
 
 /**
  * fu_firmware_build:
- * @self: A #FuFirmware
- * @n: A #XbNode
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @n: a Xmlb node
+ * @error: (nullable): optional return location for an error
  *
  * Builds a firmware from an XML manifest. The manifest would typically have the
  * following form:
@@ -902,9 +902,9 @@ fu_firmware_build (FuFirmware *self, XbNode *n, GError **error)
 
 /**
  * fu_firmware_build_from_xml:
- * @self: A #FuFirmware
+ * @self: a #FuFirmware
  * @xml: XML text
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Builds a firmware from an XML manifest. The manifest would typically have the
  * following form:
@@ -980,10 +980,10 @@ fu_firmware_build_from_xml (FuFirmware *self, const gchar *xml, GError **error)
 
 /**
  * fu_firmware_parse_file:
- * @self: A #FuFirmware
- * @file: A #GFile
- * @flags: some #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_FORCE
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @file: a file
+ * @flags: install flags, e.g. %FWUPD_INSTALL_FLAG_FORCE
+ * @error: (nullable): optional return location for an error
  *
  * Parses a firmware file, typically breaking the firmware into images.
  *
@@ -1010,12 +1010,12 @@ fu_firmware_parse_file (FuFirmware *self, GFile *file, FwupdInstallFlags flags, 
 
 /**
  * fu_firmware_write:
- * @self: A #FuFirmware
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @error: (nullable): optional return location for an error
  *
  * Writes a firmware, typically packing the images into a binary blob.
  *
- * Returns: (transfer full): a #GBytes
+ * Returns: (transfer full): a data blob
  *
  * Since: 1.3.1
  **/
@@ -1049,7 +1049,7 @@ fu_firmware_write (FuFirmware *self, GError **error)
  * @self: a #FuFirmware
  * @address: an address smaller than fu_firmware_get_addr()
  * @chunk_sz_max: the size of the new chunk
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets a block of data from the image. If the contents of the image is
  * smaller than the requested chunk size then the #GBytes will be smaller
@@ -1057,7 +1057,7 @@ fu_firmware_write (FuFirmware *self, GError **error)
  *
  * If the @address is larger than the size of the image then an error is returned.
  *
- * Return value: (transfer full): a #GBytes, or %NULL
+ * Returns: (transfer full): a #GBytes, or %NULL
  *
  * Since: 1.6.0
  **/
@@ -1114,9 +1114,9 @@ fu_firmware_write_chunk (FuFirmware *self,
 
 /**
  * fu_firmware_write_file:
- * @self: A #FuFirmware
- * @file: A #GFile
- * @error: A #GError, or %NULL
+ * @self: a #FuFirmware
+ * @file: a file
+ * @error: (nullable): optional return location for an error
  *
  * Writes a firmware, typically packing the images into a binary blob.
  *
@@ -1147,7 +1147,7 @@ fu_firmware_write_file (FuFirmware *self, GFile *file, GError **error)
 /**
  * fu_firmware_add_image:
  * @self: a #FuPlugin
- * @img: A #FuFirmware
+ * @img: a child firmware image
  *
  * Adds an image to the firmware.
  *
@@ -1188,8 +1188,8 @@ fu_firmware_add_image (FuFirmware *self, FuFirmware *img)
 /**
  * fu_firmware_remove_image:
  * @self: a #FuPlugin
- * @img: A #FuFirmware
- * @error: A #GError, or %NULL
+ * @img: a child firmware image
+ * @error: (nullable): optional return location for an error
  *
  * Remove an image from the firmware.
  *
@@ -1222,7 +1222,7 @@ fu_firmware_remove_image (FuFirmware *self, FuFirmware *img, GError **error)
  * fu_firmware_remove_image_by_idx:
  * @self: a #FuPlugin
  * @idx: index
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Removes the first image from the firmware matching the index.
  *
@@ -1249,8 +1249,8 @@ fu_firmware_remove_image_by_idx (FuFirmware *self, guint64 idx, GError **error)
 /**
  * fu_firmware_remove_image_by_id:
  * @self: a #FuPlugin
- * @id: (nullable): image ID, e.g. "config"
- * @error: A #GError, or %NULL
+ * @id: (nullable): image ID, e.g. `config`
+ * @error: (nullable): optional return location for an error
  *
  * Removes the first image from the firmware matching the ID.
  *
@@ -1303,8 +1303,8 @@ fu_firmware_get_images (FuFirmware *self)
 /**
  * fu_firmware_get_image_by_id:
  * @self: a #FuPlugin
- * @id: (nullable): image ID, e.g. "config"
- * @error: A #GError, or %NULL
+ * @id: (nullable): image ID, e.g. `config`
+ * @error: (nullable): optional return location for an error
  *
  * Gets the firmware image using the image ID.
  *
@@ -1335,8 +1335,8 @@ fu_firmware_get_image_by_id (FuFirmware *self, const gchar *id, GError **error)
 /**
  * fu_firmware_get_image_by_id_bytes:
  * @self: a #FuPlugin
- * @id: (nullable): image ID, e.g. "config"
- * @error: A #GError, or %NULL
+ * @id: (nullable): image ID, e.g. `config`
+ * @error: (nullable): optional return location for an error
  *
  * Gets the firmware image bytes using the image ID.
  *
@@ -1357,7 +1357,7 @@ fu_firmware_get_image_by_id_bytes (FuFirmware *self, const gchar *id, GError **e
  * fu_firmware_get_image_by_idx:
  * @self: a #FuPlugin
  * @idx: image index
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the firmware image using the image index.
  *
@@ -1389,7 +1389,7 @@ fu_firmware_get_image_by_idx (FuFirmware *self, guint64 idx, GError **error)
  * fu_firmware_get_image_by_checksum:
  * @self: a #FuPlugin
  * @checksum: checksum string of any format
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the firmware image using the image checksum. The checksum type is guessed
  * based on the length of the input string.
@@ -1434,7 +1434,7 @@ fu_firmware_get_image_by_checksum (FuFirmware *self,
  * fu_firmware_get_image_by_idx_bytes:
  * @self: a #FuPlugin
  * @idx: image index
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the firmware image bytes using the image index.
  *
@@ -1453,9 +1453,9 @@ fu_firmware_get_image_by_idx_bytes (FuFirmware *self, guint64 idx, GError **erro
 
 /**
  * fu_firmware_export:
- * @self: A #FuFirmware
- * @flags: #FuFirmwareExportFlags, e.g. %FU_FIRMWARE_EXPORT_FLAG_INCLUDE_DEBUG
- * @bn: A #XbBuilderNode
+ * @self: a #FuFirmware
+ * @flags: firmware export flags, e.g. %FU_FIRMWARE_EXPORT_FLAG_INCLUDE_DEBUG
+ * @bn: a Xmlb builder node
  *
  * This allows us to build an XML object for the nested firmware.
  *
@@ -1537,9 +1537,9 @@ fu_firmware_export (FuFirmware *self,
 
 /**
  * fu_firmware_export_to_xml:
- * @self: A #FuFirmware
- * @flags: #FuFirmwareExportFlags, e.g. %FU_FIRMWARE_EXPORT_FLAG_INCLUDE_DEBUG
- * @error: (nullable): a #GError or %NULL
+ * @self: a #FuFirmware
+ * @flags: firmware export flags, e.g. %FU_FIRMWARE_EXPORT_FLAG_INCLUDE_DEBUG
+ * @error: (nullable): optional return location for an error
  *
  * This allows us to build an XML object for the nested firmware.
  *
@@ -1565,7 +1565,7 @@ fu_firmware_export_to_xml (FuFirmware *self,
 
 /**
  * fu_firmware_to_string:
- * @self: A #FuFirmware
+ * @self: a #FuFirmware
  *
  * This allows us to easily print the object.
  *
@@ -1638,7 +1638,7 @@ fu_firmware_new (void)
 
 /**
  * fu_firmware_new_from_bytes:
- * @fw: A #GBytes image
+ * @fw: firmware blob image
  *
  * Creates a firmware object with the provided image set as default.
  *
@@ -1656,14 +1656,14 @@ fu_firmware_new_from_bytes (GBytes *fw)
 
 /**
  * fu_firmware_new_from_gtypes:
- * @fw: a #GBytes
- * @flags: a #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_IGNORE_CHECKSUM
- * @error: (nullable): a #GError or %NULL
- * @...: An array of #GTypes, ending with %G_TYPE_INVALID
+ * @fw: firmware blob
+ * @flags: install flags, e.g. %FWUPD_INSTALL_FLAG_IGNORE_CHECKSUM
+ * @error: (nullable): optional return location for an error
+ * @...: an array of #GTypes, ending with %G_TYPE_INVALID
  *
  * Tries to parse the firmware with each #GType in order.
  *
- * Return value: (transfer full) (nullable): A #FuFirmware, or %NULL
+ * Returns: (transfer full) (nullable): a #FuFirmware, or %NULL
  *
  * Since: 1.5.6
  **/

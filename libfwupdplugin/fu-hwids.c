@@ -17,6 +17,17 @@
 #include "fwupd-common.h"
 #include "fwupd-error.h"
 
+/**
+ * FuHwids:
+ *
+ * A the hardware IDs on the system.
+ *
+ * Note, these are called "CHIDs" in Microsoft Windows and the results here
+ * will match that of `ComputerHardwareIds.exe`.
+ *
+ * See also: [class@FuSmbios]
+ */
+
 struct _FuHwids {
 	GObject			 parent_instance;
 	GHashTable		*hash_dmi_hw;		/* BiosVersion->"1.2.3 " */
@@ -30,8 +41,8 @@ G_DEFINE_TYPE (FuHwids, fu_hwids, G_TYPE_OBJECT)
 
 /**
  * fu_hwids_get_value:
- * @self: A #FuHwids
- * @key: A DMI ID, e.g. `BiosVersion`
+ * @self: a #FuHwids
+ * @key: a DMI ID, e.g. `BiosVersion`
  *
  * Gets the cached value for one specific key that is valid ASCII and suitable
  * for display.
@@ -48,8 +59,8 @@ fu_hwids_get_value (FuHwids *self, const gchar *key)
 
 /**
  * fu_hwids_has_guid:
- * @self: A #FuHwids
- * @guid: A GUID, e.g. `059eb22d-6dc7-59af-abd3-94bbe017f67c`
+ * @self: a #FuHwids
+ * @guid: a GUID, e.g. `059eb22d-6dc7-59af-abd3-94bbe017f67c`
  *
  * Finds out if a hardware GUID exists.
  *
@@ -65,11 +76,11 @@ fu_hwids_has_guid (FuHwids *self, const gchar *guid)
 
 /**
  * fu_hwids_get_guids:
- * @self: A #FuHwids
+ * @self: a #FuHwids
  *
  * Returns all the defined HWIDs
  *
- * Returns: (transfer none) (element-type utf8): An array of GUIDs
+ * Returns: (transfer none) (element-type utf8): an array of GUIDs
  *
  * Since: 0.9.3
  **/
@@ -81,7 +92,7 @@ fu_hwids_get_guids (FuHwids *self)
 
 /**
  * fu_hwids_get_keys:
- * @self: A #FuHwids
+ * @self: a #FuHwids
  *
  * Returns all the defined HWID keys.
  *
@@ -99,6 +110,8 @@ fu_hwids_get_keys (FuHwids *self)
 		FU_HWIDS_KEY_BIOS_VERSION,
 		FU_HWIDS_KEY_BIOS_MAJOR_RELEASE,
 		FU_HWIDS_KEY_BIOS_MINOR_RELEASE,
+		FU_HWIDS_KEY_FIRMWARE_MAJOR_RELEASE,
+		FU_HWIDS_KEY_FIRMWARE_MINOR_RELEASE,
 		FU_HWIDS_KEY_MANUFACTURER,
 		FU_HWIDS_KEY_FAMILY,
 		FU_HWIDS_KEY_PRODUCT_NAME,
@@ -142,8 +155,8 @@ fu_hwids_get_guid_for_str (const gchar *str, GError **error)
 
 /**
  * fu_hwids_get_replace_keys:
- * @self: A #FuHwids
- * @key: A HardwareID key, e.g. `HardwareID-3`
+ * @self: a #FuHwids
+ * @key: a HardwareID key, e.g. `HardwareID-3`
  *
  * Gets the replacement key for a well known value.
  *
@@ -232,9 +245,9 @@ fu_hwids_get_replace_keys (FuHwids *self, const gchar *key)
 
 /**
  * fu_hwids_add_smbios_override:
- * @self: A #FuHwids
- * @key: A key, e.g. %FU_HWIDS_KEY_PRODUCT_SKU
- * @value: (nullable): A new value, e.g. "ExampleModel" or %NULL
+ * @self: a #FuHwids
+ * @key: a key, e.g. %FU_HWIDS_KEY_PRODUCT_SKU
+ * @value: (nullable): a new value, e.g. `ExampleModel`
  *
  * Sets SMBIOS override values so you can emulate another system.
  *
@@ -252,9 +265,9 @@ fu_hwids_add_smbios_override (FuHwids *self, const gchar *key, const gchar *valu
 
 /**
  * fu_hwids_get_replace_values:
- * @self: A #FuHwids
- * @keys: A key, e.g. `HardwareID-3` or %FU_HWIDS_KEY_PRODUCT_SKU
- * @error: A #GError or %NULL
+ * @self: a #FuHwids
+ * @keys: a key, e.g. `HardwareID-3` or %FU_HWIDS_KEY_PRODUCT_SKU
+ * @error: (nullable): optional return location for an error
  *
  * Gets the replacement values for a HardwareID key or plain key.
  *
@@ -296,9 +309,9 @@ fu_hwids_get_replace_values (FuHwids *self, const gchar *keys, GError **error)
 
 /**
  * fu_hwids_get_guid:
- * @self: A #FuHwids
- * @keys: A key, e.g. `HardwareID-3` or %FU_HWIDS_KEY_PRODUCT_SKU
- * @error: A #GError or %NULL
+ * @self: a #FuHwids
+ * @keys: a key, e.g. `HardwareID-3` or %FU_HWIDS_KEY_PRODUCT_SKU
+ * @error: (nullable): optional return location for an error
  *
  * Gets the GUID for a specific key.
  *
@@ -363,9 +376,9 @@ fu_hwids_convert_integer_cb (FuSmbios *smbios,
 
 /**
  * fu_hwids_setup:
- * @self: A #FuHwids
- * @smbios: (nullable): A #FuSmbios or %NULL
- * @error: A #GError or %NULL
+ * @self: a #FuHwids
+ * @smbios: (nullable): a #FuSmbios
+ * @error: (nullable): optional return location for an error
  *
  * Reads all the SMBIOS values from the hardware.
  *
@@ -399,6 +412,10 @@ fu_hwids_setup (FuHwids *self, FuSmbios *smbios, GError **error)
 		{ FU_HWIDS_KEY_BIOS_MAJOR_RELEASE,	FU_SMBIOS_STRUCTURE_TYPE_BIOS, 0x14,
 							fu_hwids_convert_padded_integer_cb },
 		{ FU_HWIDS_KEY_BIOS_MINOR_RELEASE,	FU_SMBIOS_STRUCTURE_TYPE_BIOS, 0x15,
+							fu_hwids_convert_padded_integer_cb },
+		{ FU_HWIDS_KEY_FIRMWARE_MAJOR_RELEASE,	FU_SMBIOS_STRUCTURE_TYPE_BIOS, 0x16,
+							fu_hwids_convert_padded_integer_cb },
+		{ FU_HWIDS_KEY_FIRMWARE_MINOR_RELEASE,	FU_SMBIOS_STRUCTURE_TYPE_BIOS, 0x17,
 							fu_hwids_convert_padded_integer_cb },
 		{ FU_HWIDS_KEY_BASEBOARD_MANUFACTURER,	FU_SMBIOS_STRUCTURE_TYPE_BASEBOARD, 0x04,
 							fu_hwids_convert_string_table_cb },

@@ -13,7 +13,7 @@ endif
 CONFARGS =
 
 ifneq ($(CI),)
-	CONFARGS += --werror --wrap-mode=default
+	CONFARGS += --werror
 endif
 
 ifeq (yes,$(shell dpkg-vendor --derives-from Ubuntu && echo yes))
@@ -48,7 +48,7 @@ ifneq ($(QUBES_OPTION),)
 	CONFARGS += -Dqubes=true
 endif
 
-CONFARGS += -Dplugin_dummy=true -Dgtkdoc=true -Dsupported_build=true
+CONFARGS += -Dplugin_dummy=true -Ddocs=gtkdoc -Dsupported_build=true
 
 %:
 	dh $@ --with gir

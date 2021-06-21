@@ -14,8 +14,17 @@
 #include "fu-cabinet.h"
 #include "fu-common.h"
 
+#include "fwupd-common.h"
 #include "fwupd-enums.h"
 #include "fwupd-error.h"
+
+/**
+ * FuCabinet:
+ *
+ * Cabinet archive parser and writer.
+ *
+ * See also: [class@FuArchive]
+ */
 
 struct _FuCabinet {
 	GObject			 parent_instance;
@@ -64,7 +73,7 @@ fu_cabinet_init (FuCabinet *self)
 
 /**
  * fu_cabinet_set_size_max:
- * @self: A #FuCabinet
+ * @self: a #FuCabinet
  * @size_max: size in bytes
  *
  * Sets the maximum size of the decompressed cabinet file.
@@ -80,8 +89,8 @@ fu_cabinet_set_size_max (FuCabinet *self, guint64 size_max)
 
 /**
  * fu_cabinet_set_jcat_context: (skip):
- * @self: A #FuCabinet
- * @jcat_context: (nullable): A #JcatContext
+ * @self: a #FuCabinet
+ * @jcat_context: (nullable): a Jcat context
  *
  * Sets the Jcat context, which is used for setting the trust flags on the
  * each release in the archive.
@@ -98,9 +107,9 @@ fu_cabinet_set_jcat_context (FuCabinet *self, JcatContext *jcat_context)
 
 /**
  * fu_cabinet_get_silo: (skip):
- * @self: A #FuCabinet
+ * @self: a #FuCabinet
  *
- * Gets the silo that represents the supset metadata of all the metainfo files
+ * Gets the silo that represents the superset metadata of all the metainfo files
  * found in the archive.
  *
  * Returns: (transfer full): a #XbSilo, or %NULL if the archive has not been parsed
@@ -131,9 +140,9 @@ fu_cabinet_get_file_by_name (FuCabinet *self, const gchar *basename)
 
 /**
  * fu_cabinet_add_file:
- * @self: A #FuCabinet
+ * @self: a #FuCabinet
  * @basename: filename
- * @data: #GBytes
+ * @data: file data
  *
  * Adds a file to the silo.
  *
@@ -172,9 +181,9 @@ fu_cabinet_add_file (FuCabinet *self, const gchar *basename, GBytes *data)
 
 /**
  * fu_cabinet_get_file:
- * @self: A #FuCabinet
+ * @self: a #FuCabinet
  * @basename: filename
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets a file from the archive.
  *
@@ -219,6 +228,7 @@ fu_cabinet_parse_release (FuCabinet *self, XbNode *release, GError **error)
 	GBytes *blob;
 	const gchar *csum_filename = NULL;
 	g_autofree gchar *basename = NULL;
+	g_autoptr(XbNode) artifact = NULL;
 	g_autoptr(XbNode) csum_tmp = NULL;
 	g_autoptr(XbNode) metadata_trust = NULL;
 	g_autoptr(XbNode) nsize = NULL;
@@ -231,10 +241,18 @@ fu_cabinet_parse_release (FuCabinet *self, XbNode *release, GError **error)
 	if (metadata_trust != NULL)
 		release_flags |= FWUPD_RELEASE_FLAG_TRUSTED_METADATA;
 
-	/* ensure we always have a content checksum */
-	csum_tmp = xb_node_query_first (release, "checksum[@target='content']", NULL);
-	if (csum_tmp != NULL)
-		csum_filename = xb_node_get_attr (csum_tmp, "filename");
+	/* look for source artifact first */
+	artifact = xb_node_query_first (release, "artifacts/artifact[@type='binary']", NULL);
+	if (artifact != NULL) {
+		csum_filename = xb_node_query_text (artifact, "filename", NULL);
+		csum_tmp = xb_node_query_first (artifact, "checksum[@type='sha256']", NULL);
+		if (csum_tmp == NULL)
+			csum_tmp = xb_node_query_first (artifact, "checksum", NULL);
+	} else {
+		csum_tmp = xb_node_query_first (release, "checksum[@target='content']", NULL);
+		if (csum_tmp != NULL)
+			csum_filename = xb_node_get_attr (csum_tmp, "filename");
+	}
 
 	/* if this isn't true, a firmware needs to set in the metainfo.xml file
 	 * something like: <checksum target="content" filename="FLASH.ROM"/> */
@@ -285,9 +303,11 @@ fu_cabinet_parse_release (FuCabinet *self, XbNode *release, GError **error)
 
 	/* set if unspecified, but error out if specified and incorrect */
 	if (csum_tmp != NULL && xb_node_get_text (csum_tmp) != NULL) {
+		const gchar *checksum_old = xb_node_get_text (csum_tmp);
+		GChecksumType checksum_type = fwupd_checksum_guess_kind (checksum_old);
 		g_autofree gchar *checksum = NULL;
-		checksum = g_compute_checksum_for_bytes (G_CHECKSUM_SHA1, blob);
-		if (g_strcmp0 (checksum, xb_node_get_text (csum_tmp)) != 0) {
+		checksum = g_compute_checksum_for_bytes (checksum_type, blob);
+		if (g_strcmp0 (checksum, checksum_old) != 0) {
 			g_set_error (error,
 				     FWUPD_ERROR,
 				     FWUPD_ERROR_INVALID_FILE,
@@ -723,13 +743,13 @@ fu_cabinet_decompress (FuCabinet *self, GBytes *data, GError **error)
 
 /**
  * fu_cabinet_export:
- * @self: A #FuCabinet
- * @flags: A #FuCabinetExportFlags, e.g. %FU_CABINET_EXPORT_FLAG_NONE
- * @error: A #GError, or %NULL
+ * @self: a #FuCabinet
+ * @flags: export flags, e.g. %FU_CABINET_EXPORT_FLAG_NONE
+ * @error: (nullable): optional return location for an error
  *
  * Exports the cabinet archive.
  *
- * Returns: (transfer full): A #GBytes
+ * Returns: (transfer full): a data blob
  *
  * Since: 1.6.0
  **/
@@ -856,11 +876,11 @@ fu_cabinet_sign_enumerate_firmware (FuCabinet *self, GPtrArray *files, GError **
 
 /**
  * fu_cabinet_sign:
- * @self: A #FuCabinet
- * @cert: A #GBytes of a PCKS#7 certificate
- * @privkey: A #GBytes of a private key
- * @flags: A #FuCabinetSignFlags, e.g. %FU_CABINET_SIGN_FLAG_NONE
- * @error: A #GError, or %NULL
+ * @self: a #FuCabinet
+ * @cert: a PCKS#7 certificate
+ * @privkey: a private key
+ * @flags: signing flags, e.g. %FU_CABINET_SIGN_FLAG_NONE
+ * @error: (nullable): optional return location for an error
  *
  * Sign the cabinet archive using JCat.
  *
@@ -930,10 +950,10 @@ fu_cabinet_sign (FuCabinet *self,
 
 /**
  * fu_cabinet_parse:
- * @self: A #FuCabinet
- * @data: A #GBytes
- * @flags: A #FuCabinetParseFlags, e.g. %FU_CABINET_PARSE_FLAG_NONE
- * @error: A #GError, or %NULL
+ * @self: a #FuCabinet
+ * @data: cabinet archive
+ * @flags: parse flags, e.g. %FU_CABINET_PARSE_FLAG_NONE
+ * @error: (nullable): optional return location for an error
  *
  * Parses the cabinet archive.
  *

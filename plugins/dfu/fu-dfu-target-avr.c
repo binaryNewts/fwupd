@@ -6,18 +6,15 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
 #include <stdio.h>
-
-#include "fu-chunk.h"
 
 #include "fu-dfu-common.h"
 #include "fu-dfu-sector.h"
 #include "fu-dfu-target-avr.h"
-#include "fu-dfu-target-private.h"
+#include "fu-dfu-target-private.h" /* waive-pre-commit */
 #include "fu-dfu-device.h"
-
-#include "fwupd-error.h"
 
 /**
  * FU_QUIRKS_DFU_AVR_ALT_NAME:
@@ -148,11 +145,11 @@ fu_dfu_target_avr_attach (FuDfuTarget *target, GError **error)
  * fu_dfu_target_avr_select_memory_unit:
  * @target: a #FuDfuTarget
  * @memory_unit: a unit, e.g. %DFU_AVR32_MEMORY_UNIT_FLASH
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Selects the memory unit for the device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_avr_select_memory_unit (FuDfuTarget *target,
@@ -187,11 +184,11 @@ fu_dfu_target_avr_select_memory_unit (FuDfuTarget *target,
  * fu_dfu_target_avr_select_memory_page:
  * @target: a #FuDfuTarget
  * @memory_page: an address
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Selects the memory page for the AVR device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_avr_select_memory_page (FuDfuTarget *target,
@@ -230,11 +227,11 @@ fu_dfu_target_avr_select_memory_page (FuDfuTarget *target,
  * fu_dfu_target_avr32_select_memory_page:
  * @target: a #FuDfuTarget
  * @memory_page: an address
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Selects the memory page for the AVR32 device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_avr32_select_memory_page (FuDfuTarget *target,
@@ -263,11 +260,11 @@ fu_dfu_target_avr32_select_memory_page (FuDfuTarget *target,
  * @target: a #FuDfuTarget
  * @addr_start: an address
  * @addr_end: an address
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Reads flash data from the device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_avr_read_memory (FuDfuTarget *target,
@@ -298,11 +295,11 @@ fu_dfu_target_avr_read_memory (FuDfuTarget *target,
  * fu_dfu_target_avr_read_command:
  * @target: a #FuDfuTarget
  * @memory_unit: a unit, e.g. %DFU_AVR32_MEMORY_UNIT_FLASH
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Performs a read operation on the device.
  *
- * Return value: %TRUE for success
+ * Returns: %TRUE for success
  **/
 static gboolean
 fu_dfu_target_avr_read_command (FuDfuTarget *target, guint8 page, guint8 addr, GError **error)
@@ -326,11 +323,11 @@ fu_dfu_target_avr_read_command (FuDfuTarget *target, guint8 page, guint8 addr, G
 /**
  * fu_dfu_target_avr32_get_chip_signature:
  * @target: a #FuDfuTarget
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the chip signature for the AVR32 device.
  *
- * Return value: a 4-byte %GBytes object for success, else %NULL
+ * Returns: a 4-byte %GBytes object for success, else %NULL
  **/
 static GBytes *
 fu_dfu_target_avr32_get_chip_signature (FuDfuTarget *target, GError **error)
@@ -352,11 +349,11 @@ fu_dfu_target_avr32_get_chip_signature (FuDfuTarget *target, GError **error)
 /**
  * fu_dfu_target_avr_get_chip_signature:
  * @target: a #FuDfuTarget
- * @error: a #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Gets the chip signature for the AVR device.
  *
- * Return value: a 4-byte %GBytes object for success, else %NULL
+ * Returns: a 4-byte %GBytes object for success, else %NULL
  **/
 static GBytes *
 fu_dfu_target_avr_get_chip_signature (FuDfuTarget *target, GError **error)

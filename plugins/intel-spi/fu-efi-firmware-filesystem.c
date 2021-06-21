@@ -6,17 +6,17 @@
 
 #include "config.h"
 
-#include "fu-common.h"
+#include <fwupdplugin.h>
+
 #include "fu-efi-firmware-file.h"
 #include "fu-efi-firmware-filesystem.h"
 
 /**
- * SECTION:fu-uefi-firmware-filesystem
- * @short_description: UEFI FFS
+ * FuEfiFirmwareFilesystem:
  *
- * An object that represents a UEFI FFS volume.
+ * A UEFI filesystem.
  *
- * See also: #FuFirmware
+ * See also: [class@FuFirmware]
  */
 
 G_DEFINE_TYPE (FuEfiFirmwareFilesystem, fu_efi_firmware_filesystem, FU_TYPE_FIRMWARE)

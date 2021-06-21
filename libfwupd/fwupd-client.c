@@ -36,12 +36,11 @@
 typedef GObject		*(*FwupdClientObjectNewFunc)	(void);
 
 /**
- * SECTION:fwupd-client
- * @short_description: a way of interfacing with the daemon
+ * FwupdClient:
  *
- * An object that allows client code to call the daemon methods synchronously.
+ * Allow client code to call the daemon methods.
  *
- * See also: #FwupdDevice
+ * See also: [class@FwupdDevice]
  */
 
 static void fwupd_client_finalize	 (GObject *object);
@@ -61,6 +60,7 @@ typedef struct {
 	gchar				*host_security_id;
 	GMutex				 proxy_mutex;	/* for @proxy */
 	GDBusProxy			*proxy;
+	GProxyResolver			*proxy_resolver;
 	gchar				*user_agent;
 #ifdef SOUP_SESSION_COMPAT
 	GObject				*soup_session;
@@ -429,12 +429,12 @@ fwupd_client_signal_cb (GDBusProxy *proxy,
 
 /**
  * fwupd_client_get_main_context:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the internal #GMainContext to use for synchronous methods.
  * By default the value is set a new #GMainContext.
  *
- * Return value: (transfer full): the #GMainContext
+ * Returns: (transfer full): the main context
  *
  * Since: 1.5.3
  **/
@@ -449,10 +449,10 @@ fwupd_client_get_main_context (FwupdClient *self)
 
 /**
  * fwupd_client_set_main_context:
- * @self: A #FwupdClient
- * @main_ctx: (nullable): #GMainContext or %NULL to use the global default main context
+ * @self: a #FwupdClient
+ * @main_ctx: (nullable): the global default main context to use
  *
- * Sets the internal #GMainContext to use for returning progress signals.
+ * Sets the internal main context to use for returning progress signals.
  *
  * Since: 1.5.3
  **/
@@ -469,12 +469,12 @@ fwupd_client_set_main_context (FwupdClient *self, GMainContext *main_ctx)
 
 /**
  * fwupd_client_ensure_networking:
- * @self: A #FwupdClient
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @error: (nullable): optional return location for an error
  *
  * Sets up the client networking support ready for use. Most other download and
  * upload methods call this automatically, and do you only need to call this if
- * the session is being used outside the #FwupdClient.
+ * the session is being used outside the [class@FwupdClient].
  *
  * Returns: %TRUE for success
  *
@@ -537,11 +537,30 @@ fwupd_client_progress_callback_cb (void *clientp,
 	return 0;
 }
 
+static void
+fwupd_client_curl_helper_set_proxy (FwupdClient *self,
+				    FwupdCurlHelper *helper,
+				    const gchar *url)
+{
+	FwupdClientPrivate *priv = GET_PRIVATE (self);
+	g_auto(GStrv) proxies = NULL;
+	g_autoptr(GError) error_local = NULL;
+
+	proxies = g_proxy_resolver_lookup (priv->proxy_resolver, url,
+					   NULL, &error_local);
+	if (proxies == NULL) {
+		g_warning ("failed to lookup proxy for %s: %s",
+			   url, error_local->message);
+		return;
+	}
+	if (g_strcmp0 (proxies[0], "direct://") != 0)
+		curl_easy_setopt (helper->curl, CURLOPT_PROXY, proxies[0]);
+}
+
 static FwupdCurlHelper *
 fwupd_client_curl_new (FwupdClient *self, GError **error)
 {
 	FwupdClientPrivate *priv = GET_PRIVATE (self);
-	const gchar *http_proxy;
 	g_autoptr(FwupdCurlHelper) helper = g_new0 (FwupdCurlHelper, 1);
 
 	/* check the user agent is sane */
@@ -564,21 +583,12 @@ fwupd_client_curl_new (FwupdClient *self, GError **error)
 	curl_easy_setopt (helper->curl, CURLOPT_USERAGENT, priv->user_agent);
 	curl_easy_setopt (helper->curl, CURLOPT_CONNECTTIMEOUT, 60L);
 	curl_easy_setopt (helper->curl, CURLOPT_NOPROGRESS, 0L);
+	curl_easy_setopt (helper->curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt (helper->curl, CURLOPT_MAXREDIRS, 5L);
 
 	/* relax the SSL checks for broken corporate proxies */
 	if (g_getenv ("DISABLE_SSL_STRICT") != NULL)
 		curl_easy_setopt (helper->curl, CURLOPT_SSL_VERIFYPEER, 0L);
-
-	/* set the proxy */
-	http_proxy = g_getenv ("https_proxy");
-	if (http_proxy == NULL)
-		http_proxy = g_getenv ("HTTPS_PROXY");
-	if (http_proxy == NULL)
-		http_proxy = g_getenv ("http_proxy");
-	if (http_proxy == NULL)
-		http_proxy = g_getenv ("HTTP_PROXY");
-	if (http_proxy != NULL && strlen (http_proxy) > 0)
-		curl_easy_setopt (helper->curl, CURLOPT_PROXY, http_proxy);
 
 	/* this disables the double-compression of the firmware.xml.gz file */
 	curl_easy_setopt (helper->curl, CURLOPT_HTTP_CONTENT_DECODING, 0L);
@@ -652,8 +662,8 @@ fwupd_client_connect_get_proxy_cb (GObject *source,
 
 /**
  * fwupd_client_connect_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -697,11 +707,11 @@ fwupd_client_connect_async (FwupdClient *self, GCancellable *cancellable,
 
 /**
  * fwupd_client_connect_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
- * Gets the result of fwupd_client_connect_async().
+ * Gets the result of [method@Client.connect_async].
  *
  * Returns: %TRUE for success
  *
@@ -773,14 +783,14 @@ fwupd_client_get_host_security_attrs_cb (GObject *source,
 
 /**
  * fwupd_client_get_host_security_attrs_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the host security attributes from the daemon.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -810,9 +820,9 @@ fwupd_client_get_host_security_attrs_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_host_security_attrs_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_host_security_attrs_async().
  *
@@ -874,14 +884,14 @@ fwupd_client_get_report_metadata_cb (GObject *source,
 
 /**
  * fwupd_client_get_report_metadata_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the report metadata from the daemon.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -911,9 +921,9 @@ fwupd_client_get_report_metadata_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_report_metadata_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_report_metadata_async().
  *
@@ -954,14 +964,14 @@ fwupd_client_get_devices_cb (GObject *source,
 
 /**
  * fwupd_client_get_devices_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the devices registered with the daemon.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -988,9 +998,9 @@ fwupd_client_get_devices_async (FwupdClient *self, GCancellable *cancellable,
 
 /**
  * fwupd_client_get_devices_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_devices_async().
  *
@@ -1031,14 +1041,14 @@ fwupd_client_get_plugins_cb (GObject *source,
 
 /**
  * fwupd_client_get_plugins_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the plugins being used by the daemon.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1065,9 +1075,9 @@ fwupd_client_get_plugins_async (FwupdClient *self, GCancellable *cancellable,
 
 /**
  * fwupd_client_get_plugins_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_plugins_async().
  *
@@ -1108,14 +1118,14 @@ fwupd_client_get_history_cb (GObject *source,
 
 /**
  * fwupd_client_get_history_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the history.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1142,9 +1152,9 @@ fwupd_client_get_history_async (FwupdClient *self, GCancellable *cancellable,
 
 /**
  * fwupd_client_get_history_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_history_async().
  *
@@ -1197,15 +1207,15 @@ fwupd_client_get_device_by_id_cb (GObject *source,
 
 /**
  * fwupd_client_get_device_by_id_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets a device by it's device ID.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1234,13 +1244,13 @@ fwupd_client_get_device_by_id_async (FwupdClient *self, const gchar *device_id,
 
 /**
  * fwupd_client_get_device_by_id_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_device_by_id_async().
  *
- * Returns: (transfer full): a #FwupdDevice, or %NULL for failure
+ * Returns: (transfer full): a device, or %NULL for failure
  *
  * Since: 1.5.0
  **/
@@ -1296,16 +1306,16 @@ fwupd_client_get_devices_by_guid_cb (GObject *source,
 
 /**
  * fwupd_client_get_devices_by_guid_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @guid: the GUID, e.g. `e22c4520-43dc-5bb3-8245-5787fead9b63`
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets any devices that provide a specific GUID. An error is returned if no
  * devices contains this GUID.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1334,9 +1344,9 @@ fwupd_client_get_devices_by_guid_async (FwupdClient *self, const gchar *guid,
 
 /**
  * fwupd_client_get_devices_by_guid_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_devices_by_guid_async().
  *
@@ -1377,15 +1387,15 @@ fwupd_client_get_releases_cb (GObject *source,
 
 /**
  * fwupd_client_get_releases_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the releases for a specific device
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1416,9 +1426,9 @@ fwupd_client_get_releases_async (FwupdClient *self, const gchar *device_id,
 
 /**
  * fwupd_client_get_releases_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_releases_async().
  *
@@ -1459,15 +1469,15 @@ fwupd_client_get_downgrades_cb (GObject *source,
 
 /**
  * fwupd_client_get_downgrades_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the downgrades for a specific device.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1498,9 +1508,9 @@ fwupd_client_get_downgrades_async (FwupdClient *self, const gchar *device_id,
 
 /**
  * fwupd_client_get_downgrades_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_downgrades_async().
  *
@@ -1541,15 +1551,15 @@ fwupd_client_get_upgrades_cb (GObject *source,
 
 /**
  * fwupd_client_get_upgrades_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets all the upgrades for a specific device.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -1580,9 +1590,9 @@ fwupd_client_get_upgrades_async (FwupdClient *self, const gchar *device_id,
 
 /**
  * fwupd_client_get_upgrades_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_upgrades_async().
  *
@@ -1621,15 +1631,15 @@ fwupd_client_modify_config_cb (GObject *source,
 
 /**
  * fwupd_client_modify_config_async:
- * @self: A #FwupdClient
- * @key: key, e.g. `DisabledPlugins`
- * @value: value, e.g. `*`
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @key: config key, e.g. `DisabledPlugins`
+ * @value: config value, e.g. `*`
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Modifies a daemon config option.
- * The daemon will only respond to this request with proper permissions
+ * The daemon will only respond to this request with proper permissions.
  *
  * Since: 1.5.0
  **/
@@ -1662,9 +1672,9 @@ fwupd_client_modify_config_async (FwupdClient *self,
 
 /**
  * fwupd_client_modify_config_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_modify_config_async().
  *
@@ -1703,9 +1713,9 @@ fwupd_client_activate_cb (GObject *source,
 
 /**
  * fwupd_client_activate_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: a device
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -1741,9 +1751,9 @@ fwupd_client_activate_async (FwupdClient *self,
 
 /**
  * fwupd_client_activate_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_activate_async().
  *
@@ -1782,9 +1792,9 @@ fwupd_client_verify_cb (GObject *source,
 
 /**
  * fwupd_client_verify_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -1819,9 +1829,9 @@ fwupd_client_verify_async (FwupdClient *self,
 
 /**
  * fwupd_client_verify_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_verify_async().
  *
@@ -1860,9 +1870,9 @@ fwupd_client_verify_update_cb (GObject *source,
 
 /**
  * fwupd_client_verify_update_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -1897,9 +1907,9 @@ fwupd_client_verify_update_async (FwupdClient *self,
 
 /**
  * fwupd_client_verify_update_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_verify_update_async().
  *
@@ -1938,9 +1948,9 @@ fwupd_client_unlock_cb (GObject *source,
 
 /**
  * fwupd_client_unlock_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -1975,9 +1985,9 @@ fwupd_client_unlock_async (FwupdClient *self,
 
 /**
  * fwupd_client_unlock_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_unlock_async().
  *
@@ -2016,9 +2026,9 @@ fwupd_client_clear_results_cb (GObject *source,
 
 /**
  * fwupd_client_clear_results_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: a device
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -2053,9 +2063,9 @@ fwupd_client_clear_results_async (FwupdClient *self,
 
 /**
  * fwupd_client_clear_results_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_clear_results_async().
  *
@@ -2096,15 +2106,15 @@ fwupd_client_get_results_cb (GObject *source,
 
 /**
  * fwupd_client_get_results_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets the results of a previous firmware update for a specific device.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -2135,13 +2145,13 @@ fwupd_client_get_results_async (FwupdClient *self, const gchar *device_id,
 
 /**
  * fwupd_client_get_results_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_results_async().
  *
- * Returns: (transfer full): a #FwupdDevice, or %NULL for failure
+ * Returns: (transfer full): a device, or %NULL for failure
  *
  * Since: 1.5.0
  **/
@@ -2260,11 +2270,11 @@ fwupd_client_install_stream_async (FwupdClient *self,
 
 /**
  * fwupd_client_install_bytes_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
- * @bytes: #GBytes
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @cancellable: the #GCancellable, or %NULL
+ * @bytes: cabinet archive
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -2272,7 +2282,7 @@ fwupd_client_install_stream_async (FwupdClient *self,
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  **/
@@ -2317,9 +2327,9 @@ fwupd_client_install_bytes_async (FwupdClient *self,
 
 /**
  * fwupd_client_install_bytes_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_install_bytes_async().
  *
@@ -2338,11 +2348,11 @@ fwupd_client_install_bytes_finish (FwupdClient *self, GAsyncResult *res, GError 
 
 /**
  * fwupd_client_install_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
  * @filename: the filename to install
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @cancellable: the #GCancellable, or %NULL
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -2350,7 +2360,7 @@ fwupd_client_install_bytes_finish (FwupdClient *self, GAsyncResult *res, GError 
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  **/
@@ -2397,9 +2407,9 @@ fwupd_client_install_async (FwupdClient *self,
 
 /**
  * fwupd_client_install_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_install_async().
  *
@@ -2631,12 +2641,12 @@ fwupd_client_filter_locations (GPtrArray *locations,
 
 /**
  * fwupd_client_install_release2_async:
- * @self: A #FwupdClient
- * @device: A #FwupdDevice
- * @release: A #FwupdRelease
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @download_flags: the #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_DISABLE_IPFS
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @device: a device
+ * @release: a release
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @download_flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_DISABLE_IPFS
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -2644,7 +2654,7 @@ fwupd_client_filter_locations (GPtrArray *locations,
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.6
  **/
@@ -2698,11 +2708,11 @@ fwupd_client_install_release2_async (FwupdClient *self,
 
 /**
  * fwupd_client_install_release_async:
- * @self: A #FwupdClient
- * @device: A #FwupdDevice
- * @release: A #FwupdRelease
- * @install_flags: the #FwupdInstallFlags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @device: a device
+ * @release: a release
+ * @install_flags: install flags, e.g. %FWUPD_INSTALL_FLAG_ALLOW_REINSTALL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -2710,7 +2720,7 @@ fwupd_client_install_release2_async (FwupdClient *self,
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  * Deprecated: 1.5.6
@@ -2731,9 +2741,9 @@ fwupd_client_install_release_async (FwupdClient *self,
 
 /**
  * fwupd_client_install_release_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_install_release_async().
  *
@@ -2815,9 +2825,9 @@ fwupd_client_get_details_stream_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_details_bytes_async:
- * @self: A #FwupdClient
- * @bytes: a #GBytes for the firmware, e.g. `firmware.cab`
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @bytes: firmware archive
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -2863,9 +2873,9 @@ fwupd_client_get_details_bytes_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_details_bytes_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_details_bytes_async().
  *
@@ -2884,7 +2894,7 @@ fwupd_client_get_details_bytes_finish (FwupdClient *self, GAsyncResult *res, GEr
 
 /**
  * fwupd_client_get_percentage:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the last returned percentage value.
  *
@@ -2902,7 +2912,7 @@ fwupd_client_get_percentage (FwupdClient *self)
 
 /**
  * fwupd_client_get_daemon_version:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the daemon version number.
  *
@@ -2920,7 +2930,7 @@ fwupd_client_get_daemon_version (FwupdClient *self)
 
 /**
  * fwupd_client_get_host_product:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the string that represents the host running fwupd
  *
@@ -2938,7 +2948,7 @@ fwupd_client_get_host_product (FwupdClient *self)
 
 /**
  * fwupd_client_get_host_machine_id:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the string that represents the host machine ID
  *
@@ -2956,7 +2966,7 @@ fwupd_client_get_host_machine_id (FwupdClient *self)
 
 /**
  * fwupd_client_get_host_security_id:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the string that represents the host machine ID
  *
@@ -2974,7 +2984,7 @@ fwupd_client_get_host_security_id (FwupdClient *self)
 
 /**
  * fwupd_client_get_status:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the last returned status value.
  *
@@ -2992,7 +3002,7 @@ fwupd_client_get_status (FwupdClient *self)
 
 /**
  * fwupd_client_get_tainted:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets if the daemon has been tainted by 3rd party code.
  *
@@ -3010,7 +3020,7 @@ fwupd_client_get_tainted (FwupdClient *self)
 
 /**
  * fwupd_client_get_daemon_interactive:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets if the daemon is running in an interactive terminal.
  *
@@ -3094,11 +3104,11 @@ fwupd_client_update_metadata_stream_async (FwupdClient *self,
 
 /**
  * fwupd_client_update_metadata_bytes_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: remote ID, e.g. `lvfs-testing`
  * @metadata: XML metadata data
  * @signature: signature data
- * @cancellable: #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -3111,7 +3121,7 @@ fwupd_client_update_metadata_stream_async (FwupdClient *self,
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  **/
@@ -3166,9 +3176,9 @@ fwupd_client_update_metadata_bytes_async (FwupdClient *self,
 
 /**
  * fwupd_client_update_metadata_bytes_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_update_metadata_bytes_async().
  *
@@ -3302,9 +3312,9 @@ fwupd_client_refresh_remote_signature_cb (GObject *source,
 
 /**
  * fwupd_client_refresh_remote_async:
- * @self: A #FwupdClient
- * @remote: A #FwupdRemote
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @remote: a #FwupdRemote
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -3312,7 +3322,7 @@ fwupd_client_refresh_remote_signature_cb (GObject *source,
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  **/
@@ -3349,9 +3359,9 @@ fwupd_client_refresh_remote_async (FwupdClient *self,
 
 /**
  * fwupd_client_refresh_remote_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_refresh_remote_async().
  *
@@ -3392,14 +3402,14 @@ fwupd_client_get_remotes_cb (GObject *source,
 
 /**
  * fwupd_client_get_remotes_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets the list of remotes that have been configured for the system.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -3426,9 +3436,9 @@ fwupd_client_get_remotes_async (FwupdClient *self, GCancellable *cancellable,
 
 /**
  * fwupd_client_get_remotes_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_remotes_async().
  *
@@ -3475,14 +3485,14 @@ fwupd_client_get_approved_firmware_cb (GObject *source,
 
 /**
  * fwupd_client_get_approved_firmware_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets the list of approved firmware.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -3512,9 +3522,9 @@ fwupd_client_get_approved_firmware_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_approved_firmware_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_approved_firmware_async().
  *
@@ -3553,9 +3563,9 @@ fwupd_client_set_approved_firmware_cb (GObject *source,
 
 /**
  * fwupd_client_set_approved_firmware_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @checksums: (element-type utf8): firmware checksums
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -3595,9 +3605,9 @@ fwupd_client_set_approved_firmware_async (FwupdClient *self,
 
 /**
  * fwupd_client_set_approved_firmware_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_set_approved_firmware_async().
  *
@@ -3644,14 +3654,14 @@ fwupd_client_get_blocked_firmware_cb (GObject *source,
 
 /**
  * fwupd_client_get_blocked_firmware_async:
- * @self: A #FwupdClient
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Gets the list of blocked firmware.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -3681,9 +3691,9 @@ fwupd_client_get_blocked_firmware_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_blocked_firmware_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_blocked_firmware_async().
  *
@@ -3722,9 +3732,9 @@ fwupd_client_set_blocked_firmware_cb (GObject *source,
 
 /**
  * fwupd_client_set_blocked_firmware_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @checksums: (element-type utf8): firmware checksums
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -3764,9 +3774,9 @@ fwupd_client_set_blocked_firmware_async (FwupdClient *self,
 
 /**
  * fwupd_client_set_blocked_firmware_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_set_blocked_firmware_async().
  *
@@ -3805,9 +3815,9 @@ fwupd_client_set_feature_flags_cb (GObject *source,
 
 /**
  * fwupd_client_set_feature_flags_async:
- * @self: A #FwupdClient
- * @feature_flags: #FwupdFeatureFlags, e.g. %FWUPD_FEATURE_FLAG_UPDATE_TEXT
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @feature_flags: feature flags, e.g. %FWUPD_FEATURE_FLAG_UPDATE_TEXT
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -3843,9 +3853,9 @@ fwupd_client_set_feature_flags_async (FwupdClient *self,
 
 /**
  * fwupd_client_set_feature_flags_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_set_feature_flags_async().
  *
@@ -3886,16 +3896,16 @@ fwupd_client_self_sign_cb (GObject *source, GAsyncResult *res, gpointer user_dat
 
 /**
  * fwupd_client_self_sign_async:
- * @self: A #FwupdClient
- * @value: A string to sign, typically a JSON blob
- * @flags: #FwupdSelfSignFlags, e.g. %FWUPD_SELF_SIGN_FLAG_ADD_TIMESTAMP
- * @cancellable: the #GCancellable, or %NULL
+ * @self: a #FwupdClient
+ * @value: a string to sign, typically a JSON blob
+ * @flags: signing flags, e.g. %FWUPD_SELF_SIGN_FLAG_ADD_TIMESTAMP
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
  * Signs the data using the client self-signed certificate.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * Since: 1.5.0
@@ -3941,9 +3951,9 @@ fwupd_client_self_sign_async (FwupdClient *self,
 
 /**
  * fwupd_client_self_sign_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_self_sign_async().
  *
@@ -3982,11 +3992,11 @@ fwupd_client_modify_remote_cb (GObject *source,
 
 /**
  * fwupd_client_modify_remote_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: the remote ID, e.g. `lvfs-testing`
  * @key: the key, e.g. `Enabled`
  * @value: the key, e.g. `true`
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -4025,9 +4035,9 @@ fwupd_client_modify_remote_async (FwupdClient *self,
 
 /**
  * fwupd_client_modify_remote_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_modify_remote_async().
  *
@@ -4066,11 +4076,11 @@ fwupd_client_modify_device_cb (GObject *source,
 
 /**
  * fwupd_client_modify_device_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @device_id: the device ID
  * @key: the key, e.g. `Flags`
- * @value: the key, e.g. `reported`
- * @cancellable: the #GCancellable, or %NULL
+ * @value: the value, e.g. `reported`
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -4110,9 +4120,9 @@ fwupd_client_modify_device_async (FwupdClient *self,
 
 /**
  * fwupd_client_modify_device_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_modify_device_async().
  *
@@ -4175,9 +4185,9 @@ fwupd_client_get_remote_by_id_cb (GObject *source,
 
 /**
  * fwupd_client_get_remote_by_id_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @remote_id: the remote ID, e.g. `lvfs-testing`
- * @cancellable: the #GCancellable, or %NULL
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
@@ -4210,9 +4220,9 @@ fwupd_client_get_remote_by_id_async (FwupdClient *self,
 
 /**
  * fwupd_client_get_remote_by_id_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_get_remote_by_id_async().
  *
@@ -4231,7 +4241,7 @@ fwupd_client_get_remote_by_id_finish (FwupdClient *self, GAsyncResult *res, GErr
 
 /**
  * fwupd_client_set_user_agent:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @user_agent: the user agent ID, e.g. `gnome-software/3.34.1`
  *
  * Manually sets the user agent that is used for downloading. The user agent
@@ -4257,7 +4267,7 @@ fwupd_client_set_user_agent (FwupdClient *self, const gchar *user_agent)
 
 /**
  * fwupd_client_get_user_agent:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  *
  * Gets the string that represents the user agent that is used for
  * uploading and downloading. The user agent will contain the runtime
@@ -4277,9 +4287,9 @@ fwupd_client_get_user_agent (FwupdClient *self)
 
 /**
  * fwupd_client_set_user_agent_for_package:
- * @self: A #FwupdClient
- * @package_name: client program name, e.g. "gnome-software"
- * @package_version: client program version, e.g. "3.28.1"
+ * @self: a #FwupdClient
+ * @package_name: client program name, e.g. `gnome-software`
+ * @package_version: client program version, e.g. `3.28.1`
  *
  * Builds a user-agent to use for the download.
  *
@@ -4445,6 +4455,7 @@ fwupd_client_download_bytes_thread_cb (GTask *task,
 		const gchar *url = g_ptr_array_index (helper->urls, i);
 		g_autoptr(GError) error = NULL;
 		g_debug ("downloading %s", url);
+		fwupd_client_curl_helper_set_proxy (self, helper, url);
 		if (fwupd_client_is_url_http (url)) {
 			blob = fwupd_client_download_http (self, helper->curl, url, &error);
 			if (blob != NULL)
@@ -4522,22 +4533,22 @@ fwupd_client_download_bytes2_async (FwupdClient *self,
 
 /**
  * fwupd_client_download_bytes_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @url: the remote URL
- * @flags: #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
- * @cancellable: the #GCancellable, or %NULL
+ * @flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
- * Downloads data from a remote server. The fwupd_client_set_user_agent() function
+ * Downloads data from a remote server. The [method@Client.set_user_agent] function
  * should be called before this method is used.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  **/
@@ -4565,9 +4576,9 @@ fwupd_client_download_bytes_async (FwupdClient *self,
 
 /**
  * fwupd_client_download_bytes_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_download_bytes_async().
  *
@@ -4630,24 +4641,24 @@ fwupd_client_upload_bytes_thread_cb (GTask *task,
 
 /**
  * fwupd_client_upload_bytes_async:
- * @self: A #FwupdClient
+ * @self: a #FwupdClient
  * @url: the remote URL
  * @payload: payload string
  * @signature: (nullable): signature string
- * @flags: #FwupdClientDownloadFlags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
- * @cancellable: the #GCancellable, or %NULL
+ * @flags: download flags, e.g. %FWUPD_CLIENT_DOWNLOAD_FLAG_NONE
+ * @cancellable: (nullable): optional #GCancellable
  * @callback: the function to run on completion
  * @callback_data: the data to pass to @callback
  *
- * Uploads data to a remote server. The fwupd_client_set_user_agent() function
+ * Uploads data to a remote server. The [method@Client.set_user_agent] function
  * should be called before this method is used.
  *
- * You must have called fwupd_client_connect_async() on @self before using
+ * You must have called [method@Client.connect_async] on @self before using
  * this method.
  *
  * NOTE: This method is thread-safe, but progress signals will be
  * emitted in the global default main context, if not explicitly set with
- * fwupd_client_set_main_context().
+ * [method@Client.set_main_context].
  *
  * Since: 1.5.0
  **/
@@ -4719,9 +4730,9 @@ fwupd_client_upload_bytes_async (FwupdClient *self,
 
 /**
  * fwupd_client_upload_bytes_finish:
- * @self: A #FwupdClient
- * @res: the #GAsyncResult
- * @error: the #GError, or %NULL
+ * @self: a #FwupdClient
+ * @res: the asynchronous result
+ * @error: (nullable): optional return location for an error
  *
  * Gets the result of fwupd_client_upload_bytes_async().
  *
@@ -5050,6 +5061,7 @@ fwupd_client_init (FwupdClient *self)
 	g_mutex_init (&priv->proxy_mutex);
 	g_mutex_init (&priv->idle_mutex);
 	priv->idle_sources = g_ptr_array_new_with_free_func ((GDestroyNotify) fwupd_client_context_helper_free);
+	priv->proxy_resolver = g_proxy_resolver_get_default ();
 }
 
 static void

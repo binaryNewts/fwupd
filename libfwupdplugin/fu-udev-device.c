@@ -23,15 +23,15 @@
 #include <glib/gstdio.h>
 
 #include "fu-device-private.h"
+#include "fu-i2c-device.h"
 #include "fu-udev-device-private.h"
 
 /**
- * SECTION:fu-udev-device
- * @short_description: a udev device
+ * FuUdevDevice:
  *
- * An object that represents a udev device.
+ * A UDev device, typically only available on Linux.
  *
- * See also: #FuDevice
+ * See also: [class@FuDevice]
  */
 
 typedef struct
@@ -71,7 +71,7 @@ static guint signals[SIGNAL_LAST] = { 0 };
 
 /**
  * fu_udev_device_emit_changed:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Emits the ::changed signal for the object.
  *
@@ -228,21 +228,6 @@ fu_udev_device_get_vendor_fallback (GUdevDevice *udev_device)
 
 #ifdef HAVE_GUDEV
 static gboolean
-fu_udev_device_probe_i2c_dev (FuUdevDevice *self, GError **error)
-{
-	FuUdevDevicePrivate *priv = GET_PRIVATE (self);
-	const gchar *name = g_udev_device_get_sysfs_attr (priv->udev_device, "name");
-	if (name != NULL) {
-		g_autofree gchar *devid = NULL;
-		g_autofree gchar *name_safe = g_strdup (name);
-		g_strdelimit (name_safe, " /\\\"", '-');
-		devid = g_strdup_printf ("I2C\\NAME_%s", name_safe);
-		fu_device_add_instance_id (FU_DEVICE (self), devid);
-	}
-	return TRUE;
-}
-
-static gboolean
 fu_udev_device_probe_serio (FuUdevDevice *self, GError **error)
 {
 	FuUdevDevicePrivate *priv = GET_PRIVATE (self);
@@ -381,7 +366,8 @@ fu_udev_device_probe (FuDevice *device, GError **error)
 	}
 
 	/* set serial */
-	if (fu_device_get_serial (device) == NULL) {
+	if (!fu_device_has_internal_flag (device, FU_DEVICE_INTERNAL_FLAG_NO_SERIAL_NUMBER) &&
+	    fu_device_get_serial (device) == NULL) {
 		tmp = g_udev_device_get_property (priv->udev_device, "ID_SERIAL_SHORT");
 		if (tmp == NULL)
 			tmp = g_udev_device_get_property (priv->udev_device, "ID_SERIAL");
@@ -469,12 +455,6 @@ fu_udev_device_probe (FuDevice *device, GError **error)
 	if (subsystem != NULL) {
 		fu_device_add_instance_id_full (device, subsystem,
 						FU_DEVICE_INSTANCE_FLAG_ONLY_QUIRKS);
-	}
-
-	/* i2c devices all expose a name */
-	if (g_strcmp0 (g_udev_device_get_subsystem (priv->udev_device), "i2c-dev") == 0) {
-		if (!fu_udev_device_probe_i2c_dev (self, error))
-			return FALSE;
 	}
 
 	/* add firmware_id */
@@ -577,7 +557,7 @@ fu_udev_device_set_dev (FuUdevDevice *self, GUdevDevice *udev_device)
 
 /**
  * fu_udev_device_get_slot_depth:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @subsystem: a subsystem
  *
  * Determine how far up a chain a given device is
@@ -739,7 +719,7 @@ fu_udev_device_incorporate (FuDevice *self, FuDevice *donor)
 
 /**
  * fu_udev_device_get_dev:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the #GUdevDevice.
  *
@@ -757,9 +737,9 @@ fu_udev_device_get_dev (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_subsystem:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
- * Gets the device subsystem, e.g. "pci".
+ * Gets the device subsystem, e.g. `pci`
  *
  * Returns: a subsystem, or NULL if unset or invalid
  *
@@ -775,9 +755,9 @@ fu_udev_device_get_subsystem (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_driver:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
- * Gets the device driver, e.g. "psmouse".
+ * Gets the device driver, e.g. `psmouse`.
  *
  * Returns: a subsystem, or NULL if unset or invalid
  *
@@ -793,7 +773,7 @@ fu_udev_device_get_driver (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_device_file:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device node.
  *
@@ -811,9 +791,9 @@ fu_udev_device_get_device_file (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_sysfs_path:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
- * Gets the device sysfs path, e.g. "/sys/devices/pci0000:00/0000:00:14.0".
+ * Gets the device sysfs path, e.g. `/sys/devices/pci0000:00/0000:00:14.0`.
  *
  * Returns: a local path, or NULL if unset or invalid
  *
@@ -833,7 +813,7 @@ fu_udev_device_get_sysfs_path (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_number:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device number, if any.
  *
@@ -856,7 +836,7 @@ fu_udev_device_get_number (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_vendor:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device vendor code.
  *
@@ -874,7 +854,7 @@ fu_udev_device_get_vendor (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_model:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device device code.
  *
@@ -892,7 +872,7 @@ fu_udev_device_get_model (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_subsystem_vendor:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device subsystem vendor code.
  *
@@ -910,7 +890,7 @@ fu_udev_device_get_subsystem_vendor (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_subsystem_model:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device subsystem model code.
  *
@@ -928,7 +908,7 @@ fu_udev_device_get_subsystem_model (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_revision:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the device revision.
  *
@@ -973,13 +953,13 @@ fu_udev_device_get_parent_subsystems (FuUdevDevice *self)
 
 /**
  * fu_udev_device_set_physical_id:
- * @self: A #FuUdevDevice
- * @subsystems: A subsystem string, e.g. `pci,usb`
- * @error: A #GError, or %NULL
+ * @self: a #FuUdevDevice
+ * @subsystems: a subsystem string, e.g. `pci,usb`
+ * @error: (nullable): optional return location for an error
  *
  * Sets the physical ID from the device subsystem. Plugins should choose the
- * subsystem that is "deepest" in the udev tree, for instance choosing 'usb'
- * over 'pci' for a mouse device.
+ * subsystem that is "deepest" in the udev tree, for instance choosing `usb`
+ * over `pci` for a mouse device.
  *
  * Returns: %TRUE if the physical device was set.
  *
@@ -1095,13 +1075,13 @@ fu_udev_device_set_physical_id (FuUdevDevice *self, const gchar *subsystems, GEr
 
 /**
  * fu_udev_device_set_logical_id:
- * @self: A #FuUdevDevice
- * @subsystem: A subsystem string, e.g. `pci,usb`
- * @error: A #GError, or %NULL
+ * @self: a #FuUdevDevice
+ * @subsystem: a subsystem string, e.g. `pci,usb`
+ * @error: (nullable): optional return location for an error
  *
  * Sets the logical ID from the device subsystem. Plugins should choose the
- * subsystem that most relevant in the udev tree, for instance choosing 'hid'
- * over 'usb' for a mouse device.
+ * subsystem that most relevant in the udev tree, for instance choosing `hid`
+ * over `usb` for a mouse device.
  *
  * Returns: %TRUE if the logical device was set.
  *
@@ -1174,7 +1154,7 @@ fu_udev_device_set_logical_id (FuUdevDevice *self, const gchar *subsystem, GErro
 
 /**
  * fu_udev_device_get_fd:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Gets the file descriptor if the device is open.
  *
@@ -1192,8 +1172,8 @@ fu_udev_device_get_fd (FuUdevDevice *self)
 
 /**
  * fu_udev_device_set_fd:
- * @self: A #FuUdevDevice
- * @fd: A valid file descriptor
+ * @self: a #FuUdevDevice
+ * @fd: a valid file descriptor
  *
  * Replace the file descriptor to use when the device has already been opened.
  * This object will automatically close() @fd when fu_device_close() is called.
@@ -1213,7 +1193,7 @@ fu_udev_device_set_fd (FuUdevDevice *self, gint fd)
 
 /**
  * fu_udev_device_set_readonly:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @readonly: %TRUE if the device file should be opened readonly
  *
  * Sets the open mode to `O_RDONLY` use when opening the device with
@@ -1233,8 +1213,8 @@ fu_udev_device_set_readonly (FuUdevDevice *self, gboolean readonly)
 
 /**
  * fu_udev_device_set_flags:
- * @self: A #FuUdevDevice
- * @flags: a #FuUdevDeviceFlags, e.g. %FU_UDEV_DEVICE_FLAG_OPEN_READ
+ * @self: a #FuUdevDevice
+ * @flags: udev device flags, e.g. %FU_UDEV_DEVICE_FLAG_OPEN_READ
  *
  * Sets the parameters to use when opening the device.
  *
@@ -1350,11 +1330,11 @@ fu_udev_device_close (FuDevice *device, GError **error)
 
 /**
  * fu_udev_device_ioctl:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @request: request number
- * @buf: A buffer to use, which *must* be large enough for the request
+ * @buf: a buffer to use, which *must* be large enough for the request
  * @rc: (out) (nullable): the raw return value from the ioctl
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Control a device using a low-level request.
  *
@@ -1426,11 +1406,11 @@ fu_udev_device_ioctl (FuUdevDevice *self,
 
 /**
  * fu_udev_device_pread_full:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @port: offset address
  * @buf: (in): data
  * @bufsz: size of @buf
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Read a buffer from a file descriptor at a given offset.
  *
@@ -1482,11 +1462,11 @@ fu_udev_device_pread_full (FuUdevDevice *self, goffset port,
 
 /**
  * fu_udev_device_pwrite_full:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @port: offset address
  * @buf: (out): data
  * @bufsz: size of @data
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Write a buffer to a file descriptor at a given offset.
  *
@@ -1537,10 +1517,10 @@ fu_udev_device_pwrite_full (FuUdevDevice *self, goffset port,
 
 /**
  * fu_udev_device_pwrite:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @port: offset address
  * @data: value
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Write to a file descriptor at a given offset.
  *
@@ -1556,7 +1536,7 @@ fu_udev_device_pwrite (FuUdevDevice *self, goffset port, guint8 data, GError **e
 
 /**
  * fu_udev_device_get_parent_name
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Returns the name of the direct ancestor of this device
  *
@@ -1582,9 +1562,9 @@ fu_udev_device_get_parent_name (FuUdevDevice *self)
 
 /**
  * fu_udev_device_get_sysfs_attr:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @attr: name of attribute to get
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Reads an arbitrary sysfs attribute 'attr' associated with UDEV device
  *
@@ -1634,10 +1614,10 @@ fu_udev_device_get_sysfs_attr (FuUdevDevice *self, const gchar *attr,
 
 /**
  * fu_udev_device_pread:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @port: offset address
  * @data: (out): value
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Read from a file descriptor at a given offset.
  *
@@ -1654,10 +1634,10 @@ fu_udev_device_pread (FuUdevDevice *self, goffset port, guint8 *data, GError **e
 
 /**
  * fu_udev_device_write_sysfs:
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  * @attribute: sysfs attribute name
  * @val: data to write into the attribute
- * @error: A #GError, or %NULL
+ * @error: (nullable): optional return location for an error
  *
  * Writes data into a sysfs attribute
  *
@@ -1727,7 +1707,7 @@ fu_udev_device_write_sysfs (FuUdevDevice *self, const gchar *attribute,
 
 /**
  * fu_udev_device_get_devtype
- * @self: A #FuUdevDevice
+ * @self: a #FuUdevDevice
  *
  * Returns the Udev device type
  *
@@ -1918,7 +1898,7 @@ fu_udev_device_class_init (FuUdevDeviceClass *klass)
 
 /**
  * fu_udev_device_new:
- * @udev_device: A #GUdevDevice
+ * @udev_device: a #GUdevDevice
  *
  * Creates a new #FuUdevDevice.
  *
@@ -1929,8 +1909,15 @@ fu_udev_device_class_init (FuUdevDeviceClass *klass)
 FuUdevDevice *
 fu_udev_device_new (GUdevDevice *udev_device)
 {
-	FuUdevDevice *self = g_object_new (FU_TYPE_UDEV_DEVICE,
-					   "udev-device", udev_device,
-					   NULL);
-	return FU_UDEV_DEVICE (self);
+#ifdef HAVE_GUDEV
+	/* create the correct object depending on the subsystem */
+	if (g_strcmp0 (g_udev_device_get_subsystem (udev_device), "i2c-dev") == 0) {
+		return FU_UDEV_DEVICE (g_object_new (FU_TYPE_I2C_DEVICE,
+						     "udev-device", udev_device,
+						     NULL));
+	}
+#endif
+	return FU_UDEV_DEVICE (g_object_new (FU_TYPE_UDEV_DEVICE,
+					     "udev-device", udev_device,
+					     NULL));
 }

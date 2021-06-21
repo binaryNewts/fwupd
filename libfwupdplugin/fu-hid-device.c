@@ -20,12 +20,11 @@
 #define FU_HID_DEVICE_RETRIES				10
 
 /**
- * SECTION:fu-hid-device
- * @short_description: a HID device
+ * FuHidDevice:
  *
- * An object that represents a HID device.
+ * A Human Interface Device (HID) device.
  *
- * See also: #FuDevice
+ * See also: [class@FuDevice], [class@FuUsbDevice]
  */
 
 typedef struct
@@ -165,8 +164,8 @@ fu_hid_device_close (FuDevice *device, GError **error)
 
 /**
  * fu_hid_device_set_interface:
- * @self: A #FuHidDevice
- * @interface: An interface number, e.g. 0x03
+ * @self: a #FuHidDevice
+ * @interface: an interface number, e.g. `0x03`
  *
  * Sets the HID USB interface number.
  *
@@ -187,7 +186,7 @@ fu_hid_device_set_interface (FuHidDevice *self, guint8 interface)
 
 /**
  * fu_hid_device_get_interface:
- * @self: A #FuHidDevice
+ * @self: a #FuHidDevice
  *
  * Gets the HID USB interface number.
  *
@@ -205,8 +204,8 @@ fu_hid_device_get_interface (FuHidDevice *self)
 
 /**
  * fu_hid_device_add_flag:
- * @self: A #FuHidDevice
- * @flag: #FuHidDeviceFlags, e.g. %FU_HID_DEVICE_FLAG_RETRY_FAILURE
+ * @self: a #FuHidDevice
+ * @flag: HID device flags, e.g. %FU_HID_DEVICE_FLAG_RETRY_FAILURE
  *
  * Adds a flag to be used for all set and get report messages.
  *
@@ -284,13 +283,13 @@ fu_hid_device_set_report_internal_cb (FuDevice *device, gpointer user_data, GErr
 
 /**
  * fu_hid_device_set_report:
- * @self: A #FuHidDevice
+ * @self: a #FuHidDevice
  * @value: low byte of wValue
  * @buf: (nullable): a mutable buffer of data to send
- * @bufsz: Size of @buf
+ * @bufsz: size of @buf
  * @timeout: timeout in ms
- * @flags: #FuHidDeviceFlags e.g. %FU_HID_DEVICE_FLAG_ALLOW_TRUNC
- * @error: a #GError or %NULL
+ * @flags: HID device flags e.g. %FU_HID_DEVICE_FLAG_ALLOW_TRUNC
+ * @error: (nullable): optional return location for an error
  *
  * Calls SetReport on the hardware.
  *
@@ -397,13 +396,13 @@ fu_hid_device_get_report_internal_cb (FuDevice *device, gpointer user_data, GErr
 
 /**
  * fu_hid_device_get_report:
- * @self: A #FuHidDevice
+ * @self: a #FuHidDevice
  * @value: low byte of wValue
  * @buf: (nullable): a mutable buffer of data to send
- * @bufsz: Size of @buf
+ * @bufsz: size of @buf
  * @timeout: timeout in ms
- * @flags: #FuHidDeviceFlags e.g. %FU_HID_DEVICE_FLAG_ALLOW_TRUNC
- * @error: a #GError or %NULL
+ * @flags: HID device flags e.g. %FU_HID_DEVICE_FLAG_ALLOW_TRUNC
+ * @error: (nullable): optional return location for an error
  *
  * Calls GetReport on the hardware.
  *
@@ -457,9 +456,9 @@ fu_hid_device_init (FuHidDevice *self)
 
 /**
  * fu_hid_device_new:
- * @usb_device: A #GUsbDevice
+ * @usb_device: a USB device
  *
- * Creates a new #FuHidDevice.
+ * Creates a new HID device.
  *
  * Returns: (transfer full): a #FuHidDevice
  *

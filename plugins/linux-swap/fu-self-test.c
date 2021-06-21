@@ -10,8 +10,6 @@
 
 #include "fu-linux-swap.h"
 
-#include "fwupd-error.h"
-
 static void
 fu_linux_swap_none_func (void)
 {
@@ -34,7 +32,8 @@ fu_linux_swap_plain_func (void)
 	swap = fu_linux_swap_new ("Filename\t\t\t\tType\t\tSize\tUsed\tPriority\n"
 			    "/dev/nvme0n1p4                          partition\t5962748\t0\t-2\n",
 			    0, &error);
-	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
+	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND) ||
+	    g_error_matches (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT)) {
 		g_test_skip (error->message);
 		return;
 	}
@@ -56,7 +55,8 @@ fu_linux_swap_encrypted_func (void)
 			    "/dev/dm-1                               partition\t5962748\t0\t-2\n",
 			    0, &error);
 	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND) ||
-	    g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN)) {
+	    g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN) ||
+	    g_error_matches (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT)) {
 		g_test_skip (error->message);
 		return;
 	}

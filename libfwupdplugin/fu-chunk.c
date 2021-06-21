@@ -14,11 +14,9 @@
 #include "fu-common.h"
 
 /**
- * SECTION:fu-chunk
- * @short_description: A packet of chunked data
+ * FuChunk:
  *
- * An object that represents a packet of data.
- *
+ * A optionally mutable packet of chunked data with address, page and index.
  */
 
 struct _FuChunk {
@@ -56,7 +54,7 @@ fu_chunk_set_idx (FuChunk *self, guint32 idx)
  *
  * Gets the index of the chunk.
  *
- * Return value: index
+ * Returns: index
  *
  * Since: 1.5.6
  **/
@@ -89,7 +87,7 @@ fu_chunk_set_page (FuChunk *self, guint32 page)
  *
  * Gets the page of the chunk.
  *
- * Return value: page
+ * Returns: page
  *
  * Since: 1.5.6
  **/
@@ -122,7 +120,7 @@ fu_chunk_set_address (FuChunk *self, guint32 address)
  *
  * Gets the address of the chunk.
  *
- * Return value: address
+ * Returns: address
  *
  * Since: 1.5.6
  **/
@@ -139,7 +137,7 @@ fu_chunk_get_address (FuChunk *self)
  *
  * Gets the data of the chunk.
  *
- * Return value: bytes
+ * Returns: bytes
  *
  * Since: 1.5.6
  **/
@@ -161,7 +159,7 @@ fu_chunk_get_data (FuChunk *self)
  * fu_chunk_array_new() is also writable (i.e. not `const` or `mmap`) before
  * using this function.
  *
- * Return value: (transfer none): bytes
+ * Returns: (transfer none): bytes
  *
  * Since: 1.5.6
  **/
@@ -184,7 +182,7 @@ fu_chunk_get_data_out (FuChunk *self)
  *
  * Gets the data size of the chunk.
  *
- * Return value: size in bytes
+ * Returns: size in bytes
  *
  * Since: 1.5.6
  **/
@@ -198,9 +196,9 @@ fu_chunk_get_data_sz (FuChunk *self)
 /**
  * fu_chunk_set_bytes:
  * @self: a #FuChunk
- * @bytes: (nullable): a #GBytes, or %NULL
+ * @bytes: (nullable): data
  *
- * Sets the GBytes blob
+ * Sets the data to use for the chunk.
  *
  * Since: 1.5.6
  **/
@@ -228,9 +226,9 @@ fu_chunk_set_bytes (FuChunk *self, GBytes *bytes)
  * fu_chunk_get_bytes:
  * @self: a #FuChunk
  *
- * Gets the data as bytes of the chunk.
+ * Gets the data of the chunk.
  *
- * Return value: (transfer full): a #GBytes
+ * Returns: (transfer full): data
  *
  * Since: 1.5.6
  **/
@@ -253,7 +251,7 @@ fu_chunk_get_bytes (FuChunk *self)
  *
  * Creates a new packet of chunked data.
  *
- * Return value: (transfer full): a #FuChunk
+ * Returns: (transfer full): a #FuChunk
  *
  * Since: 1.1.2
  **/
@@ -275,11 +273,11 @@ fu_chunk_new (guint32 idx,
 
 /**
  * fu_chunk_bytes_new:
- * @bytes: (nullable): a #GBytes
+ * @bytes: (nullable): data
  *
  * Creates a new packet of data.
  *
- * Return value: (transfer full): a #FuChunk
+ * Returns: (transfer full): a #FuChunk
  *
  * Since: 1.5.6
  **/
@@ -317,7 +315,7 @@ fu_chunk_export (FuChunk *self, FuFirmwareExportFlags flags, XbBuilderNode *bn)
  *
  * Converts the chunked packet to a string representation.
  *
- * Return value: (transfer full): A string
+ * Returns: (transfer full): a string
  *
  * Since: 1.1.2
  **/
@@ -337,11 +335,11 @@ fu_chunk_to_string (FuChunk *self)
 
 /**
  * fu_chunk_array_to_string:
- * @chunks: (element-type FuChunk): array of packets
+ * @chunks: (element-type FuChunk): array of chunks
  *
  * Converts all the chunked packets in an array to a string representation.
  *
- * Return value: (transfer full): A string
+ * Returns: (transfer full): a string
  *
  * Since: 1.0.1
  **/
@@ -374,7 +372,7 @@ fu_chunk_array_to_string (GPtrArray *chunks)
  * Chunks a mutable blob of memory into packets, ensuring each packet does not
  * cross a package boundary and is less that a specific transfer size.
  *
- * Return value: (transfer container) (element-type FuChunk): array of packets
+ * Returns: (transfer container) (element-type FuChunk): array of packets
  *
  * Since: 1.5.6
  **/
@@ -402,7 +400,7 @@ fu_chunk_array_mutable_new (guint8 *data,
 
 /**
  * fu_chunk_array_new:
- * @data: a linear blob of memory, or %NULL
+ * @data: (nullable): an optional linear blob of memory
  * @data_sz: size of @data_sz
  * @addr_start: the hardware address offset, or 0
  * @page_sz: the hardware page size, or 0
@@ -411,7 +409,7 @@ fu_chunk_array_mutable_new (guint8 *data,
  * Chunks a linear blob of memory into packets, ensuring each packet does not
  * cross a package boundary and is less that a specific transfer size.
  *
- * Return value: (transfer container) (element-type FuChunk): array of packets
+ * Returns: (transfer container) (element-type FuChunk): array of packets
  *
  * Since: 1.1.2
  **/
@@ -486,7 +484,7 @@ fu_chunk_array_new (const guint8 *data,
 
 /**
  * fu_chunk_array_new_from_bytes:
- * @blob: a #GBytes
+ * @blob: data
  * @addr_start: the hardware address offset, or 0
  * @page_sz: the hardware page size, or 0
  * @packet_sz: the transfer size, or 0
@@ -494,7 +492,7 @@ fu_chunk_array_new (const guint8 *data,
  * Chunks a linear blob of memory into packets, ensuring each packet does not
  * cross a package boundary and is less that a specific transfer size.
  *
- * Return value: (transfer container) (element-type FuChunk): array of packets
+ * Returns: (transfer container) (element-type FuChunk): array of packets
  *
  * Since: 1.1.2
  **/

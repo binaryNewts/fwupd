@@ -6,9 +6,9 @@
 
 #include "config.h"
 
+#include <fwupdplugin.h>
 #include <string.h>
 
-#include "fu-chunk.h"
 #include "fu-cros-ec-usb-device.h"
 #include "fu-cros-ec-common.h"
 #include "fu-cros-ec-firmware.h"
@@ -373,6 +373,10 @@ fu_cros_ec_usb_device_setup (FuDevice *device, GError **error)
 	guint32 error_code;
 	START_RESP start_resp;
 	g_auto(GStrv) config_split = NULL;
+
+	/* FuUsbDevice->setup */
+	if (!FU_DEVICE_CLASS (fu_cros_ec_usb_device_parent_class)->setup (device, error))
+		return FALSE;
 
 	if (!fu_cros_ec_usb_device_recovery (device, error))
 		return FALSE;

@@ -15,9 +15,9 @@
 
 /**
  * fu_keyring_get_release_flags:
- * @release: A #XbNode, e.g. %FWUPD_KEYRING_KIND_GPG
- * @flags: A #FwupdReleaseFlags, e.g. %FWUPD_RELEASE_FLAG_TRUSTED_PAYLOAD
- * @error: A #GError, or %NULL
+ * @release: the reelase node
+ * @flags: (out): flags for the release, e.g. %FWUPD_RELEASE_FLAG_TRUSTED_PAYLOAD
+ * @error: (nullable): optional return location for an error
  *
  * Uses the correct keyring to get the trust flags for a given release.
  *

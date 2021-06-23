@@ -1,10 +1,9 @@
 if host_machine.system() == 'linux'
-  #cargs = ['-DG_LOG_DOMAIN="FuPluginPowerd"']
 
-#install_data(['daemon.quirk'],
-  #install_dir: join_paths(datadir, 'fwupd', 'quirks.d'))
+  cargs = ['-DG_LOG_DOMAIN="FuPluginPowerd"']
 
-'''shared_module('fu_plugin_cros_powerd',
+shared_module('fu_plugin_cros_powerd',
+
   fu_hash,
   sources : [
     'fu-plugin-cros-powerd.c',
@@ -20,10 +19,11 @@ if host_machine.system() == 'linux'
     fwupd,
     fwupdplugin,
   ],
-  '''c_args : cargs,'''
- ''' dependencies : [
+  c_args : cargs,
+  dependencies : [
     plugin_deps,
   ],
-)'''
+)
+
 
 endif

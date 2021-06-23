@@ -667,6 +667,11 @@ fu_wac_device_add_modules_bluetooth (FuWacDevice *self, GError **error)
 	}
 	version = fu_common_version_from_uint16 (fw_ver, FWUPD_VERSION_FORMAT_BCD);
 
+	if (!fu_common_read_uint16_safe (buf, sizeof(buf), 1, &fw_ver,
+					 G_BIG_ENDIAN, error))
+		return FALSE;
+	version = fu_common_version_from_uint16 (fw_ver, FWUPD_VERSION_FORMAT_BCD);
+
 	/* success */
 	name = g_strdup_printf ("%s [Legacy Bluetooth Module]",
 				fu_device_get_name (FU_DEVICE (self)));

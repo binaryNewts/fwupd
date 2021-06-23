@@ -1,7 +1,9 @@
 if host_machine.system() == 'linux'
+
   cargs = ['-DG_LOG_DOMAIN="FuPluginPowerd"']
 
 shared_module('fu_plugin_cros_powerd',
+
   fu_hash,
   sources : [
     'fu-plugin-cros-powerd.c',
@@ -22,5 +24,6 @@ shared_module('fu_plugin_cros_powerd',
     plugin_deps,
   ],
 )
+
 
 endif

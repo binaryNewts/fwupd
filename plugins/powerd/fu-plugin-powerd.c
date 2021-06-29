@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Twain Byrnes <binaryNewts@google.com>
+ * Copyright (C) 2021 Twain Byrnes <binarynewts@google.com>
  *                    George Popoola <gpopoola@google.com>
  *
  *

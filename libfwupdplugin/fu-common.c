@@ -1234,6 +1234,9 @@ fu_common_get_path (FuPathKind path_kind)
 	/* /run/lock */
 	case FU_PATH_KIND_LOCKDIR:
 		return g_strdup ("/run/lock");
+	/* /run/lock/power_override/fwupd.lock */
+	case FU_PATH_KIND_LOCKFILE:
+                return g_strdup ("/run/lock/power_override/fwupd.lock");
 	case FU_PATH_KIND_OFFLINE_TRIGGER:
 		tmp = g_getenv ("FWUPD_OFFLINE_TRIGGER");
 		if (tmp != NULL)

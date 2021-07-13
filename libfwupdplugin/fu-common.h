@@ -67,7 +67,7 @@ typedef guint FuEndianType;
  * @FU_PATH_KIND_SYSFSDIR_SECURITY:	The sysfs security location (IE /sys/kernel/security)
  * @FU_PATH_KIND_ACPI_TABLES:		The location of the ACPI tables
  * @FU_PATH_KIND_LOCKDIR:		The lock directory (IE /run/lock)
- * @FU_PATH_KIND_LOCKFILE;              The lock file for CrOS systems (IE /run/lock/power_override/fwupd.lock)
+ * @FU_PATH_KIND_SYSFSDIR_FW_ATTRIB	The firmware attributes directory (IE /sys/class/firmware-attributes)
  *
  * Path types to use when dynamically determining a path at runtime
  **/
@@ -89,7 +89,7 @@ typedef enum {
 	FU_PATH_KIND_SYSFSDIR_SECURITY,
 	FU_PATH_KIND_ACPI_TABLES,
 	FU_PATH_KIND_LOCKDIR,
-	FU_PATH_KIND_LOCKFILE,
+	FU_PATH_KIND_SYSFSDIR_FW_ATTRIB,
 	/*< private >*/
 	FU_PATH_KIND_LAST
 } FuPathKind;
@@ -373,6 +373,8 @@ gchar		*fu_common_strsafe		(const gchar	*str,
 gchar		*fu_common_strjoin_array	(const gchar	*separator,
 						 GPtrArray	*array);
 gboolean	 fu_common_kernel_locked_down	(void);
+gboolean	 fu_common_check_kernel_version	(const gchar	*minimum_kernel,
+						 GError		**error);
 gboolean	 fu_common_cpuid		(guint32	 leaf,
 						 guint32	*eax,
 						 guint32	*ebx,

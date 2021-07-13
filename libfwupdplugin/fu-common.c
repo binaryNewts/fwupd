@@ -21,6 +21,10 @@
 #include <cpuid.h>
 #endif
 
+#ifdef HAVE_UTSNAME_H
+#include <sys/utsname.h>
+#endif
+
 #ifdef HAVE_LIBARCHIVE
 #include <archive_entry.h>
 #include <archive.h>
@@ -34,6 +38,7 @@
 #include "fwupd-error.h"
 
 #include "fu-common-private.h"
+#include "fu-common-version.h"
 #include "fu-firmware.h"
 #include "fu-volume-private.h"
 
@@ -1234,9 +1239,12 @@ fu_common_get_path (FuPathKind path_kind)
 	/* /run/lock */
 	case FU_PATH_KIND_LOCKDIR:
 		return g_strdup ("/run/lock");
-	/* /run/lock/power_override/fwupd.lock */
-	case FU_PATH_KIND_LOCKFILE:
-                return g_strdup ("/run/lock/power_override/fwupd.lock");
+	/* /sys/class/firmware-attributes */
+	case FU_PATH_KIND_SYSFSDIR_FW_ATTRIB:
+		tmp = g_getenv ("FWUPD_SYSFSFWATTRIBDIR");
+		if (tmp != NULL)
+			return g_strdup (tmp);
+		return g_strdup ("/sys/class/firmware-attributes");
 	case FU_PATH_KIND_OFFLINE_TRIGGER:
 		tmp = g_getenv ("FWUPD_OFFLINE_TRIGGER");
 		if (tmp != NULL)
@@ -2570,6 +2578,54 @@ fu_common_kernel_locked_down (void)
 #else
 	return FALSE;
 #endif
+}
+
+/**
+ * fu_common_check_kernel_version :
+ * @minimum_kernel: (not nullable): The minimum kernel version to check against
+ * @error: (nullable): optional return location for an error
+ *
+ * Determines if the system is running at least a certain required kernel version
+ *
+ * Since: 1.6.2
+ **/
+gboolean
+fu_common_check_kernel_version (const gchar *minimum_kernel, GError **error)
+{
+#ifdef HAVE_UTSNAME_H
+	struct utsname name_tmp;
+
+	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+	g_return_val_if_fail (minimum_kernel != NULL, FALSE);
+
+	memset (&name_tmp, 0, sizeof(struct utsname));
+	if (uname (&name_tmp) < 0) {
+		g_set_error_literal (error,
+				     FWUPD_ERROR,
+				     FWUPD_ERROR_INTERNAL,
+				     "failed to read kernel version");
+		return FALSE;
+	}
+	if (fu_common_vercmp_full (name_tmp.release,
+				   minimum_kernel,
+				   FWUPD_VERSION_FORMAT_TRIPLET) < 0) {
+		g_set_error (error,
+			     FWUPD_ERROR,
+			     FWUPD_ERROR_INTERNAL,
+			     "kernel %s doesn't meet minimum %s",
+			     name_tmp.release, minimum_kernel);
+		return FALSE;
+	}
+
+	return TRUE;
+#else
+	g_set_error_literal (error,
+			     FWUPD_ERROR,
+			     FWUPD_ERROR_INTERNAL,
+			     "platform doesn't support checking for minimum Linux kernel");
+	return FALSE;
+#endif
+
 }
 
 /**

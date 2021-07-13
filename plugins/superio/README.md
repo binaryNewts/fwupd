@@ -29,12 +29,24 @@ Update Behavior
 The firmware is deployed when the device is in normal runtime mode, but it is
 only activated on machine reboot. The firmware write is normally scheduled to be
 done very early in the boot process to minimize the chance the EC chip locking
-up if the user is actually using the kerboard controller.
+up if the user is actually using the keyboard controller.
 
 Vendor ID Security
 ------------------
 
 The vendor ID is set from the baseboard vendor, for example `DMI:Star Labs`
+
+Quirk use
+---------
+
+This plugin uses the following plugin-specific quirks:
+
+| Quirk                   | Description                                                       | Minimum fwupd version |
+|-------------------------|-------------------------------------------------------------------|-----------------------|
+| `SuperioControlPort`    | Control (status/command) port number, e.g. `0x66`                 | 1.6.2                 |
+| `SuperioDataPort`       | Data port number, e.g. `0x62`                                     | 1.6.2                 |
+| `SuperioAutoloadAction` | Autoload action, specified by ITE: `none`, `disable`, `on`, `off` | 1.6.2                 |
+| `SuperioTimeout`        | Maximum wait time in ms (default value is `250`)                  | 1.6.2                 |
 
 External interface access
 -------------------------

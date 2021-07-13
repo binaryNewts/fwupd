@@ -63,5 +63,6 @@ fu_plugin_update_cleanup (FuPlugin *plugin,
         lockdir = fu_common_get_path (FU_PATH_KIND_LOCKDIR);
         inhibitsuspend_path = g_build_filename (lockdir, "power_override", "fwupd.lock", NULL);
 
-	return (remove (inhibitsuspend_path) == 0);
+        return (remove (inhibitsuspend_path) == 0);
 }
+

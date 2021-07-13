@@ -99,6 +99,9 @@ struct _FuDeviceClass
 							 G_GNUC_WARN_UNUSED_RESULT;
 	void			 (*add_security_attrs)	(FuDevice	*self,
 							 FuSecurityAttrs *attrs);
+	gboolean		 (*ready)		(FuDevice	*self,
+							 GError		**error)
+							 G_GNUC_WARN_UNUSED_RESULT;
 	/*< private >*/
 	gpointer	padding[10];
 #endif
@@ -225,6 +228,9 @@ FuDevice	*fu_device_new				(void);
  * @FU_DEVICE_INTERNAL_FLAG_REPLUG_MATCH_GUID:		Match GUIDs on device replug where the physical and logical IDs will be different
  * @FU_DEVICE_INTERNAL_FLAG_INHERIT_ACTIVATION:		Inherit activation status from the history database on startup
  * @FU_DEVICE_INTERNAL_FLAG_IS_OPEN:			The device opened successfully and ready to use
+ * @FU_DEVICE_INTERNAL_FLAG_NO_SERIAL_NUMBER:		Do not attempt to read the device serial number
+ * @FU_DEVICE_INTERNAL_FLAG_AUTO_PARENT_CHILDREN:	Automatically assign the parent for children of this device
+ * @FU_DEVICE_INTERNAL_FLAG_ATTACH_EXTRA_RESET:		Device needs resetting twice for attach after the firmware update
  *
  * The device internal flags.
  **/
@@ -241,6 +247,9 @@ typedef enum {
 	FU_DEVICE_INTERNAL_FLAG_REPLUG_MATCH_GUID	= (1llu << 8),	/* Since: 1.5.8 */
 	FU_DEVICE_INTERNAL_FLAG_INHERIT_ACTIVATION	= (1llu << 9),  /* Since: 1.5.9 */
 	FU_DEVICE_INTERNAL_FLAG_IS_OPEN			= (1llu << 10),	/* Since: 1.6.1 */
+	FU_DEVICE_INTERNAL_FLAG_NO_SERIAL_NUMBER	= (1llu << 11),	/* Since: 1.6.2 */
+	FU_DEVICE_INTERNAL_FLAG_AUTO_PARENT_CHILDREN	= (1llu << 12),	/* Since: 1.6.2 */
+	FU_DEVICE_INTERNAL_FLAG_ATTACH_EXTRA_RESET	= (1llu << 13),	/* Since: 1.6.2 */
 	/*< private >*/
 	FU_DEVICE_INTERNAL_FLAG_UNKNOWN			= G_MAXUINT64,
 } FuDeviceInternalFlags;
@@ -270,6 +279,8 @@ void		 fu_device_add_child			(FuDevice	*self,
 							 FuDevice	*child);
 void		 fu_device_add_parent_guid		(FuDevice	*self,
 							 const gchar	*guid);
+void		 fu_device_add_parent_physical_id	(FuDevice	*self,
+							 const gchar	*physical_id);
 void		 fu_device_add_counterpart_guid		(FuDevice	*self,
 							 const gchar	*guid);
 FuDevice	*fu_device_get_proxy			(FuDevice	*self);
@@ -328,7 +339,8 @@ void		 fu_device_remove_flag			(FuDevice	*self,
 							 FwupdDeviceFlags flag);
 const gchar	*fu_device_get_custom_flags		(FuDevice	*self);
 gboolean	 fu_device_has_custom_flag		(FuDevice	*self,
-							 const gchar	*hint);
+							 const gchar	*hint)
+							 G_DEPRECATED_FOR(fu_device_has_private_flag);
 void		 fu_device_set_custom_flags		(FuDevice	*self,
 							 const gchar	*custom_flags);
 void		 fu_device_set_name			(FuDevice	*self,
@@ -465,3 +477,12 @@ GHashTable	*fu_device_report_metadata_pre		(FuDevice	*self);
 GHashTable	*fu_device_report_metadata_post		(FuDevice	*self);
 void		 fu_device_add_security_attrs		(FuDevice	*self,
 							 FuSecurityAttrs *attrs);
+void		 fu_device_register_private_flag	(FuDevice	*self,
+							 guint64	 value,
+							 const gchar	*value_str);
+void		 fu_device_add_private_flag		(FuDevice	*self,
+							 guint64	 flag);
+void		 fu_device_remove_private_flag		(FuDevice	*self,
+							 guint64	 flag);
+gboolean	 fu_device_has_private_flag		(FuDevice	*self,
+							 guint64	 flag);

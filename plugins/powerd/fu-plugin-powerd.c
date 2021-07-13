@@ -29,6 +29,16 @@ fu_plugin_startup (FuPlugin *plugin, GError **error)
 static void
 fu_plugin_inhibit_suspend ()
 {
+        g_autofree gchar *lockfilename = fu_common_get_path (FU_PATH_KIND_LOCKFILE);
+        FILE *inhibit_suspend_file;
+        inhibit_suspend_file = fopen (lockfilename, "w");
+        fprintf (inhibit_suspend_file, "%d", getpid());
+        fclose (inhibit_suspend_file);
+}
+
+static void
+fu_plugin_inhibit_suspend ()
+{
         g_autofree gchar *lockdir = NULL;
         g_autofree gchar *inhibitsuspend_path = NULL;
 
